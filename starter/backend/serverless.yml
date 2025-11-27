@@ -1,5 +1,6 @@
 service: serverless-todo-app
-
+#org: mounika18
+#app: serverless-todo-app
 frameworkVersion: "3"
 
 plugins:
@@ -7,142 +8,145 @@ plugins:
 
 provider:
   name: aws
-  runtime: nodejs18.x
-  region: us-east-1
-  stage: dev
-
+  runtime: nodejs16.x
+  stage: ${opt:stage, 'dev'}
+  region: us-east-2
+  architecture: arm64
+  logs:
+    restApi: true
+  tracing:
+    lambda: true
+    apiGateway: true
   environment:
-    TODOS_TABLE: ${self:service}-todos-${self:provider.stage}
-    TODOS_INDEX_NAME: TodosIndex
-    ATTACHMENTS_S3_BUCKET: ${self:service}-attachments-${self:provider.stage}
-    UPLOAD_URL_EXPIRATION: 300
-    AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1' # good practice for aws-sdk v2, harmless here
+    TODOS_TABLE: Todos-${self:provider.stage}
+    TODOS_INDEX_NAME: UserIdCreatedAtIndex
+    ATTACHMENTS_BUCKET: todo-attachments-${self:provider.stage}-${aws:accountId}
+    SIGNED_URL_EXPIRATION: 300
+    AUTH0_JWKS_URL: https://dev-mounika1810.us.auth0.com/.well-known/jwks.json
+    AUTH0_AUDIENCE: https://todo-api
+    AUTH0_ISSUER: https://dev-mounika1810.us.auth0.com/
 
-  # Default IAM permissions (functions can add their own roles via plugin)
   iam:
     role:
       statements:
         - Effect: Allow
           Action:
-            - logs:CreateLogGroup
-            - logs:CreateLogStream
-            - logs:PutLogEvents
-          Resource: "arn:aws:logs:*:*:*"
+            - dynamodb:DescribeTable
+          Resource:
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.TODOS_TABLE}
+        - Effect: Allow
+          Action:
+            - xray:PutTraceSegments
+            - xray:PutTelemetryRecords
+          Resource: "*"
+
+package:
+  individually: true
+  patterns:
+    - "!**/*.md"
+    - "!**/node_modules/aws-sdk/**"
 
 functions:
-  # Custom authorizer lambda
-  auth:
-    handler: src/auth.handler
-    description: "Custom authorizer that validates JWT and returns principalId"
-    memorySize: 128
-    timeout: 10
+  Authorizer:
+    handler: src/lambda/auth/auth0Authorizer.handler
 
-  getTodos:
-    handler: src/getTodos.handler
-    description: "Return all TODOs for the logged user"
+  GetTodos:
+    handler: src/lambda/http/getTodos.handler
     events:
       - http:
           path: todos
           method: get
           cors: true
           authorizer:
-            name: auth
-            type: request
-            identitySource: method.request.header.Authorization
-    # Role for this function: read/query DynamoDB
+            name: Authorizer
     iamRoleStatements:
       - Effect: Allow
-        Action:
-          - dynamodb:Query
+        Action: dynamodb:Query
         Resource:
-          - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
-          - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/*
+          - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.TODOS_INDEX_NAME}
 
-  createTodo:
-    handler: src/createTodo.handler
-    description: "Create a new TODO for the user"
+  CreateTodo:
+    handler: src/lambda/http/createTodo.handler
     events:
       - http:
           path: todos
           method: post
           cors: true
           authorizer:
-            name: auth
-            type: request
-            identitySource: method.request.header.Authorization
+            name: Authorizer
+          request:
+            schemas:
+              application/json:
+                type: object
+                required: [name, dueDate]
+                additionalProperties: false
+                properties:
+                  name: { type: string, minLength: 1, maxLength: 200 }
+                  dueDate: { type: string, pattern: "^\\d{4}-\\d{2}-\\d{2}$" }
     iamRoleStatements:
       - Effect: Allow
-        Action:
-          - dynamodb:PutItem
+        Action: dynamodb:PutItem
         Resource:
-          - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+          - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.TODOS_TABLE}
 
-  updateTodo:
-    handler: src/updateTodo.handler
-    description: "Update an existing TODO owned by the user"
+  UpdateTodo:
+    handler: src/lambda/http/updateTodo.handler
     events:
       - http:
           path: todos/{todoId}
           method: patch
           cors: true
           authorizer:
-            name: auth
-            type: request
-            identitySource: method.request.header.Authorization
+            name: Authorizer
+          request:
+            schemas:
+              application/json:
+                type: object
+                minProperties: 1
+                additionalProperties: false
+                properties:
+                  name: { type: string, minLength: 1, maxLength: 200 }
+                  dueDate: { type: string, pattern: "^\\d{4}-\\d{2}-\\d{2}$" }
+                  done: { type: boolean }
     iamRoleStatements:
       - Effect: Allow
-        Action:
-          - dynamodb:UpdateItem
+        Action: dynamodb:UpdateItem
         Resource:
-          - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+          - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.TODOS_TABLE}
 
-  deleteTodo:
-    handler: src/deleteTodo.handler
-    description: "Delete a user's TODO"
+  DeleteTodo:
+    handler: src/lambda/http/deleteTodo.handler
     events:
       - http:
           path: todos/{todoId}
           method: delete
           cors: true
           authorizer:
-            name: auth
-            type: request
-            identitySource: method.request.header.Authorization
+            name: Authorizer
     iamRoleStatements:
       - Effect: Allow
-        Action:
-          - dynamodb:DeleteItem
+        Action: dynamodb:DeleteItem
         Resource:
-          - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+          - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.TODOS_TABLE}
 
-  generateUploadUrl:
-    handler: src/generateUploadUrl.handler
-    description: "Generate pre-signed S3 upload URL for a TODO attachment"
+  GenerateUploadUrl:
+    handler: src/lambda/http/generateUploadUrl.handler
     events:
       - http:
           path: todos/{todoId}/attachment
           method: post
           cors: true
           authorizer:
-            name: auth
-            type: request
-            identitySource: method.request.header.Authorization
+            name: Authorizer
     iamRoleStatements:
       - Effect: Allow
-        Action:
-          - s3:PutObject
-          - s3:GetObject
+        Action: s3:PutObject
         Resource:
-          - arn:aws:s3:::${self:provider.environment.ATTACHMENTS_S3_BUCKET}/*
+          - arn:aws:s3:::${self:provider.environment.ATTACHMENTS_BUCKET}/*
       - Effect: Allow
-        Action:
-          - dynamodb:UpdateItem
+        Action: dynamodb:UpdateItem
         Resource:
-          - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
-
-package:
-  individually: true
-  excludeDevDependencies: true
+          - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.TODOS_TABLE}
 
 resources:
   Resources:
@@ -163,8 +167,7 @@ resources:
             KeyType: HASH
           - AttributeName: todoId
             KeyType: RANGE
-        # Local secondary index so you can query by userId and sort by createdAt
-        LocalSecondaryIndexes:
+        GlobalSecondaryIndexes:
           - IndexName: ${self:provider.environment.TODOS_INDEX_NAME}
             KeySchema:
               - AttributeName: userId
@@ -174,30 +177,32 @@ resources:
             Projection:
               ProjectionType: ALL
 
-    AttachmentsS3Bucket:
+    AttachmentsBucket:
       Type: AWS::S3::Bucket
       Properties:
-        BucketName: ${self:provider.environment.ATTACHMENTS_S3_BUCKET}
-        AccessControl: Private
-        VersioningConfiguration:
-          Status: Enabled
+        BucketName: ${self:provider.environment.ATTACHMENTS_BUCKET}
         CorsConfiguration:
           CorsRules:
-            - AllowedOrigins:
-                - "*"
-              AllowedHeaders:
-                - "*"
-              AllowedMethods:
-                - GET
-                - PUT
-                - POST
-                - HEAD
+            - AllowedOrigins: ["*"]
+              AllowedHeaders: ["*"]
+              AllowedMethods: ["GET", "PUT", "POST", "DELETE", "HEAD"]
               MaxAge: 3000
+
+    BucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket: !Ref AttachmentsBucket
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Sid: PublicReadForGetBucketObjects
+              Effect: Allow
+              Principal: "*"
+              Action: s3:GetObject
+              Resource: arn:aws:s3:::${self:provider.environment.ATTACHMENTS_BUCKET}/*
 
   Outputs:
     TodosTableName:
-      Description: "Todos DynamoDB table name"
-      Value: !Ref TodosTable
+      Value: ${self:provider.environment.TODOS_TABLE}
     AttachmentsBucketName:
-      Description: "S3 bucket for attachments"
-      Value: !Ref AttachmentsS3Bucket
+      Value: ${self:provider.environment.ATTACHMENTS_BUCKET}
