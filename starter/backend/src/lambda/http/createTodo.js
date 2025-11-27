@@ -1,5 +1,6 @@
+const { v4: uuid } = require('uuid');
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
-const { DynamoDBDocumentClient, DeleteCommand } = require('@aws-sdk/lib-dynamodb');
+const { DynamoDBDocumentClient, PutCommand } = require('@aws-sdk/lib-dynamodb');
 
 const TABLE = process.env.TODOS_TABLE;
 const cors = () => ({ 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Credentials': true });
@@ -11,21 +12,23 @@ module.exports.handler = async (event) => {
     const userId = event.requestContext?.authorizer?.principalId;
     if (!userId) return { statusCode: 401, headers: cors(), body: 'Unauthorized' };
 
-    const todoId = event.pathParameters?.todoId;
-    if (!todoId) return { statusCode: 400, headers: cors(), body: JSON.stringify({ error: 'Missing todoId' }) };
+    const data = JSON.parse(event.body || '{}');
+    if (!data.name || !data.dueDate)
+      return { statusCode: 400, headers: cors(), body: JSON.stringify({ error: 'name and dueDate required' }) };
 
-    await ddb.send(new DeleteCommand({
-      TableName: TABLE,
-      Key: { userId, todoId },
-      ConditionExpression: 'attribute_exists(todoId)'
-    }));
+    const item = {
+      userId,
+      todoId: uuid(),
+      createdAt: new Date().toISOString(),
+      name: data.name,
+      dueDate: data.dueDate,
+      done: false
+    };
 
-    return { statusCode: 204, headers: cors(), body: '' };
+    await ddb.send(new PutCommand({ TableName: TABLE, Item: item }));
+    return { statusCode: 201, headers: cors(), body: JSON.stringify({ item }) };
   } catch (e) {
-    if (e && e.name === 'ConditionalCheckFailedException') {
-      return { statusCode: 404, headers: cors(), body: JSON.stringify({ error: 'Todo not found' }) };
-    }
-    console.error('deleteTodo error', e);
+    console.error('createTodo error', e);
     return { statusCode: 500, headers: cors(), body: JSON.stringify({ error: e.message }) };
   }
 };
