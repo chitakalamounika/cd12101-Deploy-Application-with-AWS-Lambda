@@ -10,3 +10,6 @@ jspm_packages
 
 # Local DynamoDb
 .dynamodb
+
+starter/backend/sls-package.log
+starter/backend/sls-test.yml
