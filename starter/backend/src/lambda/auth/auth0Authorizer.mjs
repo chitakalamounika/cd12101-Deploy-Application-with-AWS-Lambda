@@ -1,18 +1,18 @@
-import jwt from 'jsonwebtoken';
-import jwksClient from 'jwks-rsa';
+// src/lambda/auth/auth0Authorizer.js
+// TOKEN authorizer for API Gateway (REST)
+// Env needed:
+//  - AUTH0_JWKS_URL (e.g. https://<tenant>.auth0.com/.well-known/jwks.json)
+//  - AUTH0_AUDIENCE
+//  - AUTH0_ISSUER   (e.g. https://<tenant>.auth0.com/)
 
-/**
- * REST API Lambda Authorizer (TOKEN)
- * Needs env:
- *  - AUTH0_JWKS_URL  e.g. https://tenant.auth0.com/.well-known/jwks.json
- *  - AUTH0_AUDIENCE
- *  - AUTH0_ISSUER    e.g. https://tenant.auth0.com/
- */
+const jwt = require('jsonwebtoken');
+const jwksClient = require('jwks-rsa');
+
 const client = jwksClient({
   jwksUri: process.env.AUTH0_JWKS_URL,
   cache: true,
   cacheMaxEntries: 10,
-  cacheMaxAge: 10 * 60 * 1000
+  cacheMaxAge: 10 * 60 * 1000, // 10 minutes
 });
 
 function getKey(header, callback) {
@@ -22,18 +22,6 @@ function getKey(header, callback) {
     callback(null, signingKey);
   });
 }
-
-export const handler = async (event) => {
-  try {
-    const token = extractBearer(event?.authorizationToken);
-    const decoded = await verifyJwt(token);
-    const principalId = decoded.sub;
-    return allow(principalId, event.methodArn, { sub: decoded.sub });
-  } catch (e) {
-    console.error('Authorizer error:', e?.message || e);
-    return deny('anonymous', event.methodArn);
-  }
-};
 
 function extractBearer(header) {
   if (!header) throw new Error('Missing Authorization token');
@@ -50,23 +38,34 @@ function verifyJwt(token) {
       {
         algorithms: ['RS256'],
         audience: process.env.AUTH0_AUDIENCE,
-        issuer: process.env.AUTH0_ISSUER
+        issuer: process.env.AUTH0_ISSUER,
       },
       (err, decoded) => (err ? reject(err) : resolve(decoded))
     );
   });
 }
 
-function policy(principalId, effect, resource, context = {}) {
-  return {
-    principalId,
-    context,
-    policyDocument: {
-      Version: '2012-10-17',
-      Statement: [{ Action: 'execute-api:Invoke', Effect: effect, Resource: resource }]
-    }
-  };
-}
+const policy = (principalId, effect, resource, context = {}) => ({
+  principalId,
+  context,
+  policyDocument: {
+    Version: '2012-10-17',
+    Statement: [{ Action: 'execute-api:Invoke', Effect: effect, Resource: resource }],
+  },
+});
 
 const allow = (pid, res, ctx) => policy(pid, 'Allow', res, ctx);
 const deny = (pid, res) => policy(pid, 'Deny', res);
+
+module.exports.handler = async (event) => {
+  try {
+    // TOKEN authorizer sends token in event.authorizationToken
+    const token = extractBearer(event?.authorizationToken);
+    const decoded = await verifyJwt(token);
+    const principalId = decoded.sub || 'user';
+    return allow(principalId, event.methodArn, { sub: decoded.sub || '' });
+  } catch (e) {
+    console.error('Authorizer error:', e?.message || e);
+    return deny('anonymous', event.methodArn);
+  }
+};
