@@ -2,8 +2,7 @@ service: serverless-todo-app
 frameworkVersion: "3"
 org: mounika18
 app: serverless-todo-app
-configValidationMode: off      
-#variablesResolutionMode: 20210326
+configValidationMode: off
 
 plugins:
   - serverless-iam-roles-per-function
@@ -13,20 +12,32 @@ provider:
   runtime: nodejs18.x
   stage: ${opt:stage, 'dev'}
   region: us-east-2
-  # Removed: architecture: arm64 (Can cause issues in some environments)
+  profile: default
+
+  # REST API Gateway (not HTTP API)
+  endpointType: REGIONAL
+  apiGateway:
+    shouldStartNameWithService: true
+    metrics: true
+    binaryMediaTypes:
+      - "*/*"
+    minimumCompressionSize: 1024
+
   logs:
-    restApi: true # Enables CloudWatch logging for API Gateway endpoints
+    restApi: true
   tracing:
     lambda: true
     apiGateway: true
+
   environment:
     TODOS_TABLE: Todos-${self:provider.stage}
     TODOS_INDEX_NAME: UserIdCreatedAtIndex
-    ATTACHMENTS_BUCKET: todo-attachments-${self:provider.stage}-350790026144
+    ATTACHMENTS_BUCKET: todo-attachments-${self:provider.stage}-${aws:accountId}
     SIGNED_URL_EXPIRATION: 300
     AUTH0_JWKS_URL: https://dev-mounika1810.us.auth0.com/.well-known/jwks.json
     AUTH0_AUDIENCE: https://todo-api
     AUTH0_ISSUER: https://dev-mounika1810.us.auth0.com/
+
   iam:
     role:
       statements:
@@ -34,7 +45,7 @@ provider:
           Action:
             - dynamodb:DescribeTable
           Resource:
-            - arn:aws:dynamodb:us-east-2:350790026144:table/${self:provider.environment.TODOS_TABLE}
+            - arn:aws:dynamodb:us-east-2:${aws:accountId}:table/${self:provider.environment.TODOS_TABLE}
         - Effect: Allow
           Action:
             - xray:PutTraceSegments
@@ -65,7 +76,7 @@ functions:
         Action:
           - dynamodb:Query
         Resource:
-          - arn:aws:dynamodb:us-east-2:350790026144:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.TODOS_INDEX_NAME}
+          - arn:aws:dynamodb:us-east-2:${aws:accountId}:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.TODOS_INDEX_NAME}
 
   CreateTodo:
     handler: src/lambda/http/createTodo.handler
@@ -95,7 +106,7 @@ functions:
         Action:
           - dynamodb:PutItem
         Resource:
-          - arn:aws:dynamodb:us-east-2:350790026144:table/${self:provider.environment.TODOS_TABLE}
+          - arn:aws:dynamodb:us-east-2:${aws:accountId}:table/${self:provider.environment.TODOS_TABLE}
 
   UpdateTodo:
     handler: src/lambda/http/updateTodo.handler
@@ -127,7 +138,7 @@ functions:
         Action:
           - dynamodb:UpdateItem
         Resource:
-          - arn:aws:dynamodb:us-east-2:350790026144:table/${self:provider.environment.TODOS_TABLE}
+          - arn:aws:dynamodb:us-east-2:${aws:accountId}:table/${self:provider.environment.TODOS_TABLE}
 
   DeleteTodo:
     handler: src/lambda/http/deleteTodo.handler
@@ -143,7 +154,7 @@ functions:
         Action:
           - dynamodb:DeleteItem
         Resource:
-          - arn:aws:dynamodb:us-east-2:350790026144:table/${self:provider.environment.TODOS_TABLE}
+          - arn:aws:dynamodb:us-east-2:${aws:accountId}:table/${self:provider.environment.TODOS_TABLE}
 
   GenerateUploadUrl:
     handler: src/lambda/http/generateUploadUrl.handler
@@ -164,10 +175,11 @@ functions:
         Action:
           - dynamodb:UpdateItem
         Resource:
-          - arn:aws:dynamodb:us-east-2:350790026144:table/${self:provider.environment.TODOS_TABLE}
+          - arn:aws:dynamodb:us-east-2:${aws:accountId}:table/${self:provider.environment.TODOS_TABLE}
 
 resources:
   Resources:
+    # DynamoDB table
     TodosTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -195,6 +207,7 @@ resources:
             Projection:
               ProjectionType: ALL
 
+    # S3 bucket (private)
     AttachmentsBucket:
       Type: AWS::S3::Bucket
       Properties:
@@ -202,6 +215,11 @@ resources:
         OwnershipControls:
           Rules:
             - ObjectOwnership: BucketOwnerEnforced
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          IgnorePublicAcls: true
+          BlockPublicPolicy: true
+          RestrictPublicBuckets: true
         CorsConfiguration:
           CorsRules:
             - AllowedOrigins: ["*"]
@@ -209,8 +227,30 @@ resources:
               AllowedMethods: ["GET","PUT","POST","DELETE","HEAD"]
               MaxAge: 3000
 
+    # Explicit API Gateway response 
+    GatewayResponseDefault4XX:
+      Type: AWS::ApiGateway::GatewayResponse
+      Properties:
+        ResponseType: DEFAULT_4XX
+        RestApiId:
+          Ref: ApiGatewayRestApi
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+          gatewayresponse.header.Access-Control-Allow-Methods: "'GET,OPTIONS,POST,PATCH,DELETE'"
+        StatusCode: '400'
+
   Outputs:
     TodosTableName:
       Value: ${self:provider.environment.TODOS_TABLE}
     AttachmentsBucketName:
       Value: ${self:provider.environment.ATTACHMENTS_BUCKET}
+    ApiGatewayRestApiId:
+      Value:
+        Ref: ApiGatewayRestApi
+    ApiGatewayRestApiRootResourceId:
+      Value:
+        Fn::GetAtt: [ ApiGatewayRestApi, RootResourceId ]
+    ApiGatewayInvokeUrl:
+      Value:
+        Fn::Sub: "https://${ApiGatewayRestApi}.execute-api.${AWS::Region}.amazonaws.com/${self:provider.stage}"
