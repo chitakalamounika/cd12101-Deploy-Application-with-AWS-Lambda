@@ -1,164 +1,117 @@
-import update from 'immutability-helper'
-import React, { useEffect, useState } from 'react'
+import update from 'immutability-helper';
+import React, { useEffect, useState } from 'react';
 import {
-  Button,
-  Checkbox,
-  Divider,
-  Grid,
-  Header,
-  Icon,
-  Image,
-  Loader
-} from 'semantic-ui-react'
+  Button, Checkbox, Divider, Grid, Header, Icon, Image, Loader,
+} from 'semantic-ui-react';
+import { useNavigate } from 'react-router-dom';
+import { useApiToken } from '../auth/token';
 
-import { useAuth0 } from '@auth0/auth0-react'
-import { useNavigate } from 'react-router-dom'
-import { deleteTodo, getTodos, patchTodo } from '../api/todos-api'
-import { NewTodoInput } from './NewTodoInput'
+const API = process.env.REACT_APP_API_ENDPOINT;
 
-export function Todos() {
-  function renderTodos() {
-    if (loadingTodos) {
-      return renderLoading()
-    }
+export default function Todos() {
+  const [todos, setTodos] = useState([]);
+  const [loadingTodos, setLoadingTodos] = useState(true);
+  const getToken = useApiToken();
+  const navigate = useNavigate();
 
-    return renderTodosList()
-  }
-
-  function renderTodosList() {
-    return (
-      <Grid padded>
-        {todos.map((todo, pos) => {
-          return (
-            <Grid.Row key={todo.todoId}>
-              <Grid.Column width={1} verticalAlign="middle">
-                <Checkbox
-                  onChange={() => onTodoCheck(pos)}
-                  checked={todo.done}
-                />
-              </Grid.Column>
-              <Grid.Column width={10} verticalAlign="middle">
-                {todo.name}
-              </Grid.Column>
-              <Grid.Column width={3} floated="right">
-                {todo.dueDate}
-              </Grid.Column>
-              <Grid.Column width={1} floated="right">
-                <Button
-                  icon
-                  color="blue"
-                  onClick={() => onEditButtonClick(todo.todoId)}
-                >
-                  <Icon name="pencil" />
-                </Button>
-              </Grid.Column>
-              <Grid.Column width={1} floated="right">
-                <Button
-                  icon
-                  color="red"
-                  onClick={() => onTodoDelete(todo.todoId)}
-                >
-                  <Icon name="delete" />
-                </Button>
-              </Grid.Column>
-              {todo.attachmentUrl && (
-                <Image src={todo.attachmentUrl} size="small" wrapped />
-              )}
-              <Grid.Column width={16}>
-                <Divider />
-              </Grid.Column>
-            </Grid.Row>
-          )
-        })}
-      </Grid>
-    )
-  }
-
-  async function onTodoDelete(todoId) {
-    try {
-      const accessToken = await getAccessTokenSilently({
-        audience: `https://test-endpoint.auth0.com/api/v2/`,
-        scope: 'delete:todo'
-      })
-      await deleteTodo(accessToken, todoId)
-      setTodos(todos.filter((todo) => todo.todoId !== todoId))
-    } catch (e) {
-      alert('Todo deletion failed')
-    }
-  }
-
-  async function onTodoCheck(pos) {
-    try {
-      const todo = todos[pos]
-      const accessToken = await getAccessTokenSilently({
-        audience: `https://test-endpoint.auth0.com/api/v2/`,
-        scope: 'write:todo'
-      })
-      await patchTodo(accessToken, todo.todoId, {
-        name: todo.name,
-        dueDate: todo.dueDate,
-        done: !todo.done
-      })
-      setTodos(
-        update(todos, {
-          [pos]: { done: { $set: !todo.done } }
-        })
-      )
-    } catch (e) {
-      console.log('Failed to check a TODO', e)
-      alert('Todo deletion failed')
-    }
-  }
-
-  function onEditButtonClick(todoId) {
-    navigate(`/todos/${todoId}/edit`)
-  }
-
-  const { user, getAccessTokenSilently } = useAuth0()
-  const [todos, setTodos] = useState([])
-  const [loadingTodos, setLoadingTodos] = useState(true)
-  const navigate = useNavigate()
-
-  console.log('User', {
-    name: user.name,
-    email: user.email
-  })
+  const loadTodos = async () => {
+    setLoadingTodos(true);
+    const token = await getToken();
+    const res = await fetch(`${API}/todos`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+    setTodos(data.items ?? []);
+    setLoadingTodos(false);
+  };
 
   useEffect(() => {
-    async function foo() {
-      try {
-        const accessToken = await getAccessTokenSilently({
-          audience: `https://test-endpoint.auth0.com/api/v2/`,
-          scope: 'read:todos'
-        })
-        console.log('Access token: ' + accessToken)
-        const todos = await getTodos(accessToken)
-        setTodos(todos)
-        setLoadingTodos(false)
-      } catch (e) {
-        alert(`Failed to fetch todos: ${e.message}`)
-      }
-    }
-    foo()
-  }, [getAccessTokenSilently])
+    loadTodos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const toggleTodo = async (pos) => {
+    const todo = todos[pos];
+    const token = await getToken();
+    await fetch(`${API}/todos/${todo.todoId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ done: !todo.done }),
+    });
+    setTodos(update(todos, { [pos]: { done: { $set: !todo.done } } }));
+  };
+
+  const deleteTodo = async (todoId) => {
+    const token = await getToken();
+    await fetch(`${API}/todos/${todoId}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setTodos(todos.filter((t) => t.todoId !== todoId));
+  };
+
+  const getUploadUrl = async (todoId) => {
+    const token = await getToken();
+    const res = await fetch(`${API}/todos/${todoId}/attachment`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const { uploadUrl } = await res.json();
+    return uploadUrl;
+  };
+
+  const handleFileChange = async (e, todoId) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const uploadUrl = await getUploadUrl(todoId);
+    await fetch(uploadUrl, { method: 'PUT', body: file });
+    await loadTodos();
+  };
+
+  if (loadingTodos) {
+    return <Loader indeterminate active>Loading TODOs</Loader>;
+  }
 
   return (
-    <div>
-      <Header as="h1">TODOs</Header>
-
-      <NewTodoInput onNewTodo={(newTodo) => setTodos([...todos, newTodo])} />
-
-      {renderTodos(loadingTodos, todos)}
-    </div>
-  )
-}
-
-function renderLoading() {
-  return (
-    <Grid.Row>
-      <Loader indeterminate active inline="centered">
-        Loading TODOs
-      </Loader>
-    </Grid.Row>
-  )
+    <Grid padded>
+      <Grid.Row>
+        <Grid.Column width={16}>
+          <Header as="h1">TODOs</Header>
+          <Button primary onClick={() => navigate('/create')}>
+            <Icon name="add" /> New task
+          </Button>
+        </Grid.Column>
+      </Grid.Row>
+      <Divider />
+      {todos.map((todo, pos) => (
+        <Grid.Row key={todo.todoId} columns={3} verticalAlign="middle">
+          <Grid.Column width={1}>
+            <Checkbox
+              onChange={() => toggleTodo(pos)}
+              checked={todo.done}
+            />
+          </Grid.Column>
+          <Grid.Column width={10}>
+            <Header as="h3">{todo.name}</Header>
+            <p>Due: {todo.dueDate}</p>
+            {todo.attachmentUrl && (
+              <Image src={todo.attachmentUrl} size="small" bordered />
+            )}
+          </Grid.Column>
+          <Grid.Column width={5} textAlign="right">
+            <label className="ui icon button">
+              <Icon name="upload" />
+              <input type="file" hidden onChange={(e) => handleFileChange(e, todo.todoId)} />
+            </label>
+            <Button color="red" onClick={() => deleteTodo(todo.todoId)}>
+              <Icon name="trash" /> Delete
+            </Button>
+          </Grid.Column>
+        </Grid.Row>
+      ))}
+    </Grid>
+  );
 }
