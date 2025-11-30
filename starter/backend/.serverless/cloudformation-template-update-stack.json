@@ -217,7 +217,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/serverless-todo-app/dev/1764444957784-2025-11-29T19:35:57.784Z/Authorizer.zip"
+          "S3Key": "serverless/serverless-todo-app/dev/1764499354448-2025-11-30T10:42:34.448Z/Authorizer.zip"
         },
         "Handler": "src/lambda/auth/auth0Authorizer.handler",
         "Runtime": "nodejs18.x",
@@ -259,7 +259,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/serverless-todo-app/dev/1764444957784-2025-11-29T19:35:57.784Z/GetTodos.zip"
+          "S3Key": "serverless/serverless-todo-app/dev/1764499354448-2025-11-30T10:42:34.448Z/GetTodos.zip"
         },
         "Handler": "src/lambda/http/getTodos.handler",
         "Runtime": "nodejs18.x",
@@ -302,7 +302,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/serverless-todo-app/dev/1764444957784-2025-11-29T19:35:57.784Z/CreateTodo.zip"
+          "S3Key": "serverless/serverless-todo-app/dev/1764499354448-2025-11-30T10:42:34.448Z/CreateTodo.zip"
         },
         "Handler": "src/lambda/http/createTodo.handler",
         "Runtime": "nodejs18.x",
@@ -345,7 +345,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/serverless-todo-app/dev/1764444957784-2025-11-29T19:35:57.784Z/UpdateTodo.zip"
+          "S3Key": "serverless/serverless-todo-app/dev/1764499354448-2025-11-30T10:42:34.448Z/UpdateTodo.zip"
         },
         "Handler": "src/lambda/http/updateTodo.handler",
         "Runtime": "nodejs18.x",
@@ -388,7 +388,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/serverless-todo-app/dev/1764444957784-2025-11-29T19:35:57.784Z/DeleteTodo.zip"
+          "S3Key": "serverless/serverless-todo-app/dev/1764499354448-2025-11-30T10:42:34.448Z/DeleteTodo.zip"
         },
         "Handler": "src/lambda/http/deleteTodo.handler",
         "Runtime": "nodejs18.x",
@@ -431,7 +431,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/serverless-todo-app/dev/1764444957784-2025-11-29T19:35:57.784Z/GenerateUploadUrl.zip"
+          "S3Key": "serverless/serverless-todo-app/dev/1764499354448-2025-11-30T10:42:34.448Z/GenerateUploadUrl.zip"
         },
         "Handler": "src/lambda/http/generateUploadUrl.handler",
         "Runtime": "nodejs18.x",
@@ -1076,7 +1076,7 @@
         "Type": "TOKEN"
       }
     },
-    "ApiGatewayDeployment1764444954296": {
+    "ApiGatewayDeployment1764499347802": {
       "Type": "AWS::ApiGateway::Deployment",
       "Properties": {
         "RestApiId": {
@@ -1426,7 +1426,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/serverless-todo-app/dev/1764444957784-2025-11-29T19:35:57.784Z/custom-resources.zip"
+          "S3Key": "serverless/serverless-todo-app/dev/1764499354448-2025-11-30T10:42:34.448Z/custom-resources.zip"
         },
         "FunctionName": "serverless-todo-app-dev-custom-resource-apigw-cw-role",
         "Handler": "api-gateway-cloud-watch-role/handler.handler",
@@ -1798,13 +1798,15 @@
                 {
                   "Effect": "Allow",
                   "Action": [
-                    "s3:PutObject"
+                    "s3:PutObject",
+                    "s3:GetObject"
                   ],
                   "Resource": "arn:aws:s3:::todo-attachments-dev-719705352300/*"
                 },
                 {
                   "Effect": "Allow",
                   "Action": [
+                    "dynamodb:GetItem",
                     "dynamodb:UpdateItem"
                   ],
                   "Resource": "arn:aws:dynamodb:us-east-2:719705352300:table/Todos-dev"
