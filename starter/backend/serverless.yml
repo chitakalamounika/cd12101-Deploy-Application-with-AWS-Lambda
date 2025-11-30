@@ -144,7 +144,7 @@ functions:
         Action: dynamodb:DeleteItem
         Resource: arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.TODOS_TABLE}
 
-    GenerateUploadUrl:
+  GenerateUploadUrl:
     handler: src/lambda/http/generateUploadUrl.handler
     events:
       - http:
@@ -158,13 +158,14 @@ functions:
         Action:
           - s3:PutObject
           - s3:GetObject
-        Resource: arn:aws:s3:::${self:provider.environment.ATTACHMENTS_BUCKET}/*
+        Resource:
+          - arn:aws:s3:::${self:provider.environment.ATTACHMENTS_BUCKET}/*
       - Effect: Allow
         Action:
           - dynamodb:GetItem
           - dynamodb:UpdateItem
-        Resource: arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.TODOS_TABLE}
-
+        Resource:
+          - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.TODOS_TABLE}
 
 resources:
   Resources:
