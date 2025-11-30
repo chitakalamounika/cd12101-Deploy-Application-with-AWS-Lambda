@@ -1,59 +1,42 @@
-import { useAuth0 } from '@auth0/auth0-react'
-import dateFormat from 'dateformat'
-import React, { useState } from 'react'
-import { Divider, Grid, Input } from 'semantic-ui-react'
-import { createTodo } from '../api/todos-api'
+import React, { useState } from 'react';
+import { Button, Form } from 'semantic-ui-react';
+import { useNavigate } from 'react-router-dom';
+import { useApiToken } from '../auth/token';
 
-export function NewTodoInput({ onNewTodo }) {
-  const [newTodoName, setNewTodoName] = useState('')
+const API = process.env.REACT_APP_API_ENDPOINT;
 
-  const { getAccessTokenSilently } = useAuth0()
+export default function NewTodoInput() {
+  const [name, setName] = useState('');
+  const [dueDate, setDueDate] = useState('');
+  const navigate = useNavigate();
+  const getToken = useApiToken();
 
-  const onTodoCreate = async (event) => {
-    try {
-      const accessToken = await getAccessTokenSilently({
-        audience: `https://test-endpoint.auth0.com/api/v2/`,
-        scope: 'write:todos'
-      })
-      const dueDate = calculateDueDate()
-      const createdTodo = await createTodo(accessToken, {
-        name: newTodoName,
-        dueDate
-      })
-      onNewTodo(createdTodo)
-    } catch (e) {
-      console.log('Failed to created a new TODO', e)
-      alert('Todo creation failed')
-    }
-  }
+  const create = async () => {
+    const token = await getToken();
+    await fetch(`${API}/todos`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ name, dueDate }),
+    });
+    navigate('/');
+  };
 
   return (
-    <Grid.Row>
-      <Grid.Column width={16}>
-        <Input
-          action={{
-            color: 'teal',
-            labelPosition: 'left',
-            icon: 'add',
-            content: 'New task',
-            onClick: onTodoCreate
-          }}
-          fluid
-          actionPosition="left"
-          placeholder="To change the world..."
-          onChange={(event) => setNewTodoName(event.target.value)}
-        />
-      </Grid.Column>
-      <Grid.Column width={16}>
-        <Divider />
-      </Grid.Column>
-    </Grid.Row>
-  )
-}
-
-function calculateDueDate() {
-  const date = new Date()
-  date.setDate(date.getDate() + 7)
-
-  return dateFormat(date, 'yyyy-mm-dd')
+    <Form onSubmit={create}>
+      <Form.Input
+        label="Name"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        required
+      />
+      <Form.Input
+        label="Due Date (YYYY-MM-DD)"
+        value={dueDate}
+        onChange={(e) => setDueDate(e.target.value)}
+        required
+      />
+      <Button primary type="submit">Create</Button>
+      <Button onClick={() => navigate('/')}>Cancel</Button>
+    </Form>
+  );
 }
