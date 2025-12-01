@@ -6,8 +6,10 @@ plugins:
   - serverless-esbuild
 
 custom:
+  # 👉 set your frontend origin here (Codespace URL). Keep localhost too.
+  webOrigin: https://ubiquitous-fishstick-67q56x4pqr92wxg-3000.app.github.dev
   corsOrigins:
-    - https://ubiquitous-fishstick-67q56x4pqr92wxg-3000.app.github.dev
+    - ${self:custom.webOrigin}
     - http://localhost:3000
   corsHeaders:
     - Content-Type
@@ -15,6 +17,7 @@ custom:
     - Authorization
     - X-Api-Key
     - X-Amz-Security-Token
+
   esbuild:
     bundle: true
     minify: true
@@ -23,8 +26,9 @@ custom:
     platform: node
     treeShaking: true
     keepNames: false
+    # Lambda already has v2 SDK; we exclude v2 for speed. (We use @aws-sdk v3 in code.)
     exclude:
-      - aws-sdk   # v2 is in Lambda runtime
+      - aws-sdk
 
 provider:
   name: aws
@@ -37,15 +41,20 @@ provider:
   tracing:
     lambda: true
     apiGateway: true
+  versionFunctions: true
+
   environment:
     TODOS_TABLE: Todos-${self:provider.stage}
     TODOS_INDEX_NAME: UserIdCreatedAtIndex
     ATTACHMENTS_BUCKET: todo-attachments-${self:provider.stage}-${aws:accountId}
     SIGNED_URL_EXPIRATION: 300
+    # Auth0
     AUTH0_JWKS_URL: https://dev-mounika1810.us.auth0.com/.well-known/jwks.json
     AUTH0_AUDIENCE: https://todo-api
     AUTH0_ISSUER: https://dev-mounika1810.us.auth0.com/
-    WEB_ORIGIN: https://ubiquitous-fishstick-67q56x4pqr92wxg-3000.app.github.dev
+    # CORS origin for Lambdas
+    WEB_ORIGIN: ${self:custom.webOrigin}
+
   iam:
     role:
       statements:
@@ -163,7 +172,7 @@ functions:
         Resource: arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.TODOS_TABLE}
 
   GenerateUploadUrl:
-    handler: src/lambda/http/generateUploadUrl.handler
+    handler: src/lambda/http/ggenerateUploadUrl.handler
     events:
       - http:
           path: todos/{todoId}/attachment
@@ -189,6 +198,7 @@ functions:
 
 resources:
   Resources:
+    # DynamoDB table with GSI (userId, createdAt)
     TodosTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -216,6 +226,7 @@ resources:
             Projection:
               ProjectionType: ALL
 
+    # S3 bucket for attachments
     AttachmentsBucket:
       Type: AWS::S3::Bucket
       Properties:
@@ -235,6 +246,29 @@ resources:
               AllowedHeaders: ["*"]
               AllowedMethods: ["GET", "PUT", "POST", "DELETE", "HEAD"]
               MaxAge: 3000
+
+    # Ensure API Gateway returns CORS headers on 4XX/5XX (so browser shows real error instead of "Failed to fetch")
+    GatewayResponseDefault4XX:
+      Type: AWS::ApiGateway::GatewayResponse
+      Properties:
+        ResponseType: DEFAULT_4XX
+        RestApiId:
+          Ref: ApiGatewayRestApi
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'${self:custom.webOrigin}'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+          gatewayresponse.header.Access-Control-Allow-Methods: "'GET,POST,PATCH,DELETE,OPTIONS'"
+
+    GatewayResponseDefault5XX:
+      Type: AWS::ApiGateway::GatewayResponse
+      Properties:
+        ResponseType: DEFAULT_5XX
+        RestApiId:
+          Ref: ApiGatewayRestApi
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'${self:custom.webOrigin}'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+          gatewayresponse.header.Access-Control-Allow-Methods: "'GET,POST,PATCH,DELETE,OPTIONS'"
 
   Outputs:
     TodosTableName:
