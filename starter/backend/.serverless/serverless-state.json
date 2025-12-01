@@ -7,17 +7,10 @@
     "provider": {
       "name": "aws",
       "runtime": "nodejs18.x",
-      "stage": "dev",
       "region": "us-east-2",
-      "architecture": "arm64",
-      "logs": {
-        "restApi": true
-      },
-      "tracing": {
-        "lambda": true,
-        "apiGateway": true
-      },
+      "stage": "dev",
       "environment": {
+        "WEB_ORIGIN": "https://ubiquitous-fishstick-67q56x4pqr92wxg-3000.app.github.dev",
         "TODOS_TABLE": "Todos-dev",
         "TODOS_INDEX_NAME": "UserIdCreatedAtIndex",
         "ATTACHMENTS_BUCKET": "todo-attachments-dev-719705352300",
@@ -25,27 +18,6 @@
         "AUTH0_JWKS_URL": "https://dev-mounika1810.us.auth0.com/.well-known/jwks.json",
         "AUTH0_AUDIENCE": "https://todo-api",
         "AUTH0_ISSUER": "https://dev-mounika1810.us.auth0.com/"
-      },
-      "iam": {
-        "role": {
-          "statements": [
-            {
-              "Effect": "Allow",
-              "Action": [
-                "dynamodb:DescribeTable"
-              ],
-              "Resource": "arn:aws:dynamodb:us-east-2:719705352300:table/Todos-dev"
-            },
-            {
-              "Effect": "Allow",
-              "Action": [
-                "xray:PutTraceSegments",
-                "xray:PutTelemetryRecords"
-              ],
-              "Resource": "*"
-            }
-          ]
-        }
       },
       "versionFunctions": true,
       "compiledCloudFormationTemplate": {
@@ -214,22 +186,6 @@
                             "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/serverless-todo-app-dev*:*:*"
                           }
                         ]
-                      },
-                      {
-                        "$ref": "$[\"service\"][\"provider\"][\"iam\"][\"role\"][\"statements\"][0]"
-                      },
-                      {
-                        "$ref": "$[\"service\"][\"provider\"][\"iam\"][\"role\"][\"statements\"][1]"
-                      },
-                      {
-                        "Effect": "Allow",
-                        "Action": [
-                          "xray:PutTraceSegments",
-                          "xray:PutTelemetryRecords"
-                        ],
-                        "Resource": [
-                          "*"
-                        ]
                       }
                     ]
                   }
@@ -258,21 +214,16 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/serverless-todo-app/dev/1764563166007-2025-12-01T04:26:06.007Z/Authorizer.zip"
+                "S3Key": "serverless/serverless-todo-app/dev/1764578216468-2025-12-01T08:36:56.468Z/serverless-todo-app.zip"
               },
               "Handler": "src/lambda/auth/auth0Authorizer.handler",
               "Runtime": "nodejs18.x",
               "FunctionName": "serverless-todo-app-dev-Authorizer",
               "MemorySize": 1024,
               "Timeout": 6,
-              "Architectures": [
-                "arm64"
-              ],
-              "TracingConfig": {
-                "Mode": "Active"
-              },
               "Environment": {
                 "Variables": {
+                  "WEB_ORIGIN": "https://ubiquitous-fishstick-67q56x4pqr92wxg-3000.app.github.dev",
                   "TODOS_TABLE": "Todos-dev",
                   "TODOS_INDEX_NAME": "UserIdCreatedAtIndex",
                   "ATTACHMENTS_BUCKET": "todo-attachments-dev-719705352300",
@@ -300,21 +251,16 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/serverless-todo-app/dev/1764563166007-2025-12-01T04:26:06.007Z/GetTodos.zip"
+                "S3Key": "serverless/serverless-todo-app/dev/1764578216468-2025-12-01T08:36:56.468Z/serverless-todo-app.zip"
               },
               "Handler": "src/lambda/http/getTodos.handler",
               "Runtime": "nodejs18.x",
               "FunctionName": "serverless-todo-app-dev-GetTodos",
               "MemorySize": 1024,
               "Timeout": 6,
-              "Architectures": [
-                "arm64"
-              ],
-              "TracingConfig": {
-                "Mode": "Active"
-              },
               "Environment": {
                 "Variables": {
+                  "WEB_ORIGIN": "https://ubiquitous-fishstick-67q56x4pqr92wxg-3000.app.github.dev",
                   "TODOS_TABLE": "Todos-dev",
                   "TODOS_INDEX_NAME": "UserIdCreatedAtIndex",
                   "ATTACHMENTS_BUCKET": "todo-attachments-dev-719705352300",
@@ -326,13 +272,12 @@
               },
               "Role": {
                 "Fn::GetAtt": [
-                  "GetTodosIamRoleLambdaExecution",
+                  "IamRoleLambdaExecution",
                   "Arn"
                 ]
               }
             },
             "DependsOn": [
-              "GetTodosIamRoleLambdaExecution",
               "GetTodosLogGroup"
             ]
           },
@@ -343,21 +288,16 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/serverless-todo-app/dev/1764563166007-2025-12-01T04:26:06.007Z/CreateTodo.zip"
+                "S3Key": "serverless/serverless-todo-app/dev/1764578216468-2025-12-01T08:36:56.468Z/serverless-todo-app.zip"
               },
               "Handler": "src/lambda/http/createTodo.handler",
               "Runtime": "nodejs18.x",
               "FunctionName": "serverless-todo-app-dev-CreateTodo",
               "MemorySize": 1024,
               "Timeout": 6,
-              "Architectures": [
-                "arm64"
-              ],
-              "TracingConfig": {
-                "Mode": "Active"
-              },
               "Environment": {
                 "Variables": {
+                  "WEB_ORIGIN": "https://ubiquitous-fishstick-67q56x4pqr92wxg-3000.app.github.dev",
                   "TODOS_TABLE": "Todos-dev",
                   "TODOS_INDEX_NAME": "UserIdCreatedAtIndex",
                   "ATTACHMENTS_BUCKET": "todo-attachments-dev-719705352300",
@@ -369,13 +309,12 @@
               },
               "Role": {
                 "Fn::GetAtt": [
-                  "CreateTodoIamRoleLambdaExecution",
+                  "IamRoleLambdaExecution",
                   "Arn"
                 ]
               }
             },
             "DependsOn": [
-              "CreateTodoIamRoleLambdaExecution",
               "CreateTodoLogGroup"
             ]
           },
@@ -386,21 +325,16 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/serverless-todo-app/dev/1764563166007-2025-12-01T04:26:06.007Z/UpdateTodo.zip"
+                "S3Key": "serverless/serverless-todo-app/dev/1764578216468-2025-12-01T08:36:56.468Z/serverless-todo-app.zip"
               },
               "Handler": "src/lambda/http/updateTodo.handler",
               "Runtime": "nodejs18.x",
               "FunctionName": "serverless-todo-app-dev-UpdateTodo",
               "MemorySize": 1024,
               "Timeout": 6,
-              "Architectures": [
-                "arm64"
-              ],
-              "TracingConfig": {
-                "Mode": "Active"
-              },
               "Environment": {
                 "Variables": {
+                  "WEB_ORIGIN": "https://ubiquitous-fishstick-67q56x4pqr92wxg-3000.app.github.dev",
                   "TODOS_TABLE": "Todos-dev",
                   "TODOS_INDEX_NAME": "UserIdCreatedAtIndex",
                   "ATTACHMENTS_BUCKET": "todo-attachments-dev-719705352300",
@@ -412,13 +346,12 @@
               },
               "Role": {
                 "Fn::GetAtt": [
-                  "UpdateTodoIamRoleLambdaExecution",
+                  "IamRoleLambdaExecution",
                   "Arn"
                 ]
               }
             },
             "DependsOn": [
-              "UpdateTodoIamRoleLambdaExecution",
               "UpdateTodoLogGroup"
             ]
           },
@@ -429,21 +362,16 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/serverless-todo-app/dev/1764563166007-2025-12-01T04:26:06.007Z/DeleteTodo.zip"
+                "S3Key": "serverless/serverless-todo-app/dev/1764578216468-2025-12-01T08:36:56.468Z/serverless-todo-app.zip"
               },
               "Handler": "src/lambda/http/deleteTodo.handler",
               "Runtime": "nodejs18.x",
               "FunctionName": "serverless-todo-app-dev-DeleteTodo",
               "MemorySize": 1024,
               "Timeout": 6,
-              "Architectures": [
-                "arm64"
-              ],
-              "TracingConfig": {
-                "Mode": "Active"
-              },
               "Environment": {
                 "Variables": {
+                  "WEB_ORIGIN": "https://ubiquitous-fishstick-67q56x4pqr92wxg-3000.app.github.dev",
                   "TODOS_TABLE": "Todos-dev",
                   "TODOS_INDEX_NAME": "UserIdCreatedAtIndex",
                   "ATTACHMENTS_BUCKET": "todo-attachments-dev-719705352300",
@@ -455,13 +383,12 @@
               },
               "Role": {
                 "Fn::GetAtt": [
-                  "DeleteTodoIamRoleLambdaExecution",
+                  "IamRoleLambdaExecution",
                   "Arn"
                 ]
               }
             },
             "DependsOn": [
-              "DeleteTodoIamRoleLambdaExecution",
               "DeleteTodoLogGroup"
             ]
           },
@@ -472,21 +399,16 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/serverless-todo-app/dev/1764563166007-2025-12-01T04:26:06.007Z/GenerateUploadUrl.zip"
+                "S3Key": "serverless/serverless-todo-app/dev/1764578216468-2025-12-01T08:36:56.468Z/serverless-todo-app.zip"
               },
               "Handler": "src/lambda/http/generateUploadUrl.handler",
               "Runtime": "nodejs18.x",
               "FunctionName": "serverless-todo-app-dev-GenerateUploadUrl",
               "MemorySize": 1024,
               "Timeout": 6,
-              "Architectures": [
-                "arm64"
-              ],
-              "TracingConfig": {
-                "Mode": "Active"
-              },
               "Environment": {
                 "Variables": {
+                  "WEB_ORIGIN": "https://ubiquitous-fishstick-67q56x4pqr92wxg-3000.app.github.dev",
                   "TODOS_TABLE": "Todos-dev",
                   "TODOS_INDEX_NAME": "UserIdCreatedAtIndex",
                   "ATTACHMENTS_BUCKET": "todo-attachments-dev-719705352300",
@@ -498,74 +420,73 @@
               },
               "Role": {
                 "Fn::GetAtt": [
-                  "GenerateUploadUrlIamRoleLambdaExecution",
+                  "IamRoleLambdaExecution",
                   "Arn"
                 ]
               }
             },
             "DependsOn": [
-              "GenerateUploadUrlIamRoleLambdaExecution",
               "GenerateUploadUrlLogGroup"
             ]
           },
-          "AuthorizerLambdaVersionBZlSf6WpWze7smmMbh685FvfViqJ9zmCJJ9Mwwn2zAQ": {
+          "AuthorizerLambdaVersionYGE0J1ksTvV3FmPgLFq6z5IGBTvXa4snptwxs8iDUY": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "AuthorizerLambdaFunction"
               },
-              "CodeSha256": "TE1Q43juyNuH9nDofTrMRqO/LhGVW0/gpzM4pYOnP2E="
+              "CodeSha256": "wI6m4hrhUza8pwkM+qtj75pmvOMhznSvzcZZ/k32ofo="
             }
           },
-          "GetTodosLambdaVersion9x2YlZ1mG9sB20mGgk1blZ2seQV9PujQo2gk0DuV95w": {
+          "GetTodosLambdaVersion2pFiaZ4lTsswYav9GV8O40fMO5J8Fob0MvyVirr7dQ": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "GetTodosLambdaFunction"
               },
-              "CodeSha256": "JLGqqTB7/TY3y39Pt1gINTTe036/mi4pJ2agZ+SgVl8="
+              "CodeSha256": "wI6m4hrhUza8pwkM+qtj75pmvOMhznSvzcZZ/k32ofo="
             }
           },
-          "CreateTodoLambdaVersionZYojp0f0k3DuSqIPAB6jR6Qf6Db5NG1vYBYt7xV2FTc": {
+          "CreateTodoLambdaVersionK6mTlmXkdbcmMRSarw7cPVayHUxJ2WCAXba37NhdqI": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "CreateTodoLambdaFunction"
               },
-              "CodeSha256": "qx5KjjKS5ssljIXo/1VWGvZWq4glh6mhYJsTP28qfWU="
+              "CodeSha256": "wI6m4hrhUza8pwkM+qtj75pmvOMhznSvzcZZ/k32ofo="
             }
           },
-          "UpdateTodoLambdaVersionAuSJe0ziDWGPAIa7YzVISJp4aoUooo9X4Xu2rcY22c": {
+          "UpdateTodoLambdaVersionQytTqVTRBdRtyu7y75zYVIqyTda8skrBC00Q2K4X0": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "UpdateTodoLambdaFunction"
               },
-              "CodeSha256": "ieENzfirKy5o+qAj1ncIIUpSQ4gR0CQEXcju7Wm8VHo="
+              "CodeSha256": "wI6m4hrhUza8pwkM+qtj75pmvOMhznSvzcZZ/k32ofo="
             }
           },
-          "DeleteTodoLambdaVersionVf5clR8dzDVFlqCZYbJmJcizB48Fjm9wGel8KjcOsI": {
+          "DeleteTodoLambdaVersioniEIVVtTQ9ASptHfRGhiahqllBXbGTrBz87EUtjMw": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "DeleteTodoLambdaFunction"
               },
-              "CodeSha256": "aCsiRJfOZOfhBGnH5VUEbWcWO/OW2pUKcVFm4MLRkvI="
+              "CodeSha256": "wI6m4hrhUza8pwkM+qtj75pmvOMhznSvzcZZ/k32ofo="
             }
           },
-          "GenerateUploadUrlLambdaVersionMzIkN9mJ7YBtvjaEnOTiQZHfvkudF3ogsip346pWwEg": {
+          "GenerateUploadUrlLambdaVersionHLC01v7nVu8WrZ30Af35a1fnUIDEJvWpklTgf9ew8": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "GenerateUploadUrlLambdaFunction"
               },
-              "CodeSha256": "R2t8Y+hAW+6AcHqYonp8i5OjPADDJjKbYaRYH4IvEbY="
+              "CodeSha256": "wI6m4hrhUza8pwkM+qtj75pmvOMhznSvzcZZ/k32ofo="
             }
           },
           "ApiGatewayRestApi": {
@@ -651,7 +572,7 @@
                       "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST,GET'"
                     },
                     "ResponseTemplates": {
-                      "application/json": "#set($origin = $input.params(\"Origin\"))\n#if($origin == \"\") #set($origin = $input.params(\"origin\")) #end\n#if($origin.matches(\"https://ubiquitous-fishstick-67q56x4pqr92wxg-3000[.]app[.]github[.]dev\") || $origin.matches(\"http://localhost:3000\")) #set($context.responseOverride.header.Access-Control-Allow-Origin = $origin) #end"
+                      "application/json": "#set($origin = $input.params(\"Origin\"))\n#if($origin == \"\") #set($origin = $input.params(\"origin\")) #end\n#if($origin.matches(\"https://ubiquitous-fishstick-67q56x4pqr92wxg-3000[.]app[.]github[.]dev\")) #set($context.responseOverride.header.Access-Control-Allow-Origin = $origin) #end"
                     }
                   }
                 ]
@@ -696,7 +617,7 @@
                       "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,DELETE,PATCH'"
                     },
                     "ResponseTemplates": {
-                      "application/json": "#set($origin = $input.params(\"Origin\"))\n#if($origin == \"\") #set($origin = $input.params(\"origin\")) #end\n#if($origin.matches(\"https://ubiquitous-fishstick-67q56x4pqr92wxg-3000[.]app[.]github[.]dev\") || $origin.matches(\"http://localhost:3000\")) #set($context.responseOverride.header.Access-Control-Allow-Origin = $origin) #end"
+                      "application/json": "#set($origin = $input.params(\"Origin\"))\n#if($origin == \"\") #set($origin = $input.params(\"origin\")) #end\n#if($origin.matches(\"https://ubiquitous-fishstick-67q56x4pqr92wxg-3000[.]app[.]github[.]dev\")) #set($context.responseOverride.header.Access-Control-Allow-Origin = $origin) #end"
                     }
                   }
                 ]
@@ -741,7 +662,7 @@
                       "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST'"
                     },
                     "ResponseTemplates": {
-                      "application/json": "#set($origin = $input.params(\"Origin\"))\n#if($origin == \"\") #set($origin = $input.params(\"origin\")) #end\n#if($origin.matches(\"https://ubiquitous-fishstick-67q56x4pqr92wxg-3000[.]app[.]github[.]dev\") || $origin.matches(\"http://localhost:3000\")) #set($context.responseOverride.header.Access-Control-Allow-Origin = $origin) #end"
+                      "application/json": "#set($origin = $input.params(\"Origin\"))\n#if($origin == \"\") #set($origin = $input.params(\"origin\")) #end\n#if($origin.matches(\"https://ubiquitous-fishstick-67q56x4pqr92wxg-3000[.]app[.]github[.]dev\")) #set($context.responseOverride.header.Access-Control-Allow-Origin = $origin) #end"
                     }
                   }
                 ]
@@ -846,15 +767,7 @@
                   ]
                 }
               },
-              "MethodResponses": [],
-              "RequestValidatorId": {
-                "Ref": "ApiGatewayServerlesstodoappRequestValidator"
-              },
-              "RequestModels": {
-                "application/json": {
-                  "Ref": "ApiGatewayMethodTodosPostApplicationJsonModel"
-                }
-              }
+              "MethodResponses": []
             },
             "DependsOn": [
               "AuthorizerApiGatewayAuthorizer"
@@ -903,15 +816,7 @@
                   ]
                 }
               },
-              "MethodResponses": [],
-              "RequestValidatorId": {
-                "Ref": "ApiGatewayServerlesstodoappRequestValidator"
-              },
-              "RequestModels": {
-                "application/json": {
-                  "Ref": "ApiGatewayMethodTodosTodoidVarPatchApplicationJsonModel"
-                }
-              }
+              "MethodResponses": []
             },
             "DependsOn": [
               "AuthorizerApiGatewayAuthorizer"
@@ -1015,73 +920,6 @@
               "AuthorizerApiGatewayAuthorizer"
             ]
           },
-          "ApiGatewayServerlesstodoappRequestValidator": {
-            "Type": "AWS::ApiGateway::RequestValidator",
-            "Properties": {
-              "RestApiId": {
-                "Ref": "ApiGatewayRestApi"
-              },
-              "ValidateRequestBody": true,
-              "ValidateRequestParameters": true,
-              "Name": "serverless-todo-app-dev | Validate request body and querystring parameters"
-            }
-          },
-          "ApiGatewayMethodTodosPostApplicationJsonModel": {
-            "Type": "AWS::ApiGateway::Model",
-            "Properties": {
-              "RestApiId": {
-                "Ref": "ApiGatewayRestApi"
-              },
-              "ContentType": "application/json",
-              "Schema": {
-                "type": "object",
-                "required": [
-                  "name",
-                  "dueDate"
-                ],
-                "additionalProperties": false,
-                "properties": {
-                  "name": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 200
-                  },
-                  "dueDate": {
-                    "type": "string",
-                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
-                  }
-                }
-              }
-            }
-          },
-          "ApiGatewayMethodTodosTodoidVarPatchApplicationJsonModel": {
-            "Type": "AWS::ApiGateway::Model",
-            "Properties": {
-              "RestApiId": {
-                "Ref": "ApiGatewayRestApi"
-              },
-              "ContentType": "application/json",
-              "Schema": {
-                "type": "object",
-                "minProperties": 1,
-                "additionalProperties": false,
-                "properties": {
-                  "name": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 200
-                  },
-                  "dueDate": {
-                    "type": "string",
-                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
-                  },
-                  "done": {
-                    "type": "boolean"
-                  }
-                }
-              }
-            }
-          },
           "AuthorizerApiGatewayAuthorizer": {
             "Type": "AWS::ApiGateway::Authorizer",
             "Properties": {
@@ -1116,7 +954,7 @@
               "Type": "TOKEN"
             }
           },
-          "ApiGatewayDeployment1764563161419": {
+          "ApiGatewayDeployment1764578212980": {
             "Type": "AWS::ApiGateway::Deployment",
             "Properties": {
               "RestApiId": {
@@ -1357,609 +1195,31 @@
               }
             }
           },
-          "ApiGatewayLogGroup": {
-            "Type": "AWS::Logs::LogGroup",
+          "GatewayResponseDefault4XX": {
+            "Type": "AWS::ApiGateway::GatewayResponse",
             "Properties": {
-              "LogGroupName": "/aws/api-gateway/serverless-todo-app-dev"
-            }
-          },
-          "CustomApiGatewayAccountCloudWatchRole": {
-            "Type": "Custom::ApiGatewayAccountRole",
-            "Version": 1,
-            "Properties": {
-              "ServiceToken": {
-                "Fn::GetAtt": [
-                  "CustomDashresourceDashapigwDashcwDashroleLambdaFunction",
-                  "Arn"
-                ]
+              "ResponseType": "DEFAULT_4XX",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "ResponseParameters": {
+                "gatewayresponse.header.Access-Control-Allow-Origin": "'https://ubiquitous-fishstick-67q56x4pqr92wxg-3000.app.github.dev'",
+                "gatewayresponse.header.Access-Control-Allow-Headers": "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'",
+                "gatewayresponse.header.Access-Control-Allow-Methods": "'GET,POST,PATCH,DELETE,OPTIONS'"
               }
             }
           },
-          "IamRoleCustomResourcesLambdaExecution": {
-            "Type": "AWS::IAM::Role",
+          "GatewayResponseDefault5XX": {
+            "Type": "AWS::ApiGateway::GatewayResponse",
             "Properties": {
-              "AssumeRolePolicyDocument": {
-                "Version": "2012-10-17",
-                "Statement": [
-                  {
-                    "Effect": "Allow",
-                    "Principal": {
-                      "Service": [
-                        "lambda.amazonaws.com"
-                      ]
-                    },
-                    "Action": [
-                      "sts:AssumeRole"
-                    ]
-                  }
-                ]
+              "ResponseType": "DEFAULT_5XX",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
               },
-              "Policies": [
-                {
-                  "PolicyName": {
-                    "Fn::Join": [
-                      "-",
-                      [
-                        "dev",
-                        "serverless-todo-app",
-                        "custom-resources-lambda"
-                      ]
-                    ]
-                  },
-                  "PolicyDocument": {
-                    "Version": "2012-10-17",
-                    "Statement": [
-                      {
-                        "Effect": "Allow",
-                        "Resource": {
-                          "Fn::Join": [
-                            ":",
-                            [
-                              "arn",
-                              {
-                                "Ref": "AWS::Partition"
-                              },
-                              "iam:",
-                              {
-                                "Ref": "AWS::AccountId"
-                              },
-                              "role/*"
-                            ]
-                          ]
-                        },
-                        "Action": [
-                          "iam:AttachRolePolicy",
-                          "iam:CreateRole",
-                          "iam:ListAttachedRolePolicies",
-                          "iam:PassRole"
-                        ]
-                      },
-                      {
-                        "Effect": "Allow",
-                        "Resource": {
-                          "Fn::Join": [
-                            ":",
-                            [
-                              "arn",
-                              {
-                                "Ref": "AWS::Partition"
-                              },
-                              "apigateway:*::/account"
-                            ]
-                          ]
-                        },
-                        "Action": [
-                          "apigateway:GET",
-                          "apigateway:PATCH"
-                        ]
-                      }
-                    ]
-                  }
-                }
-              ]
-            }
-          },
-          "CustomDashresourceDashapigwDashcwDashroleLambdaFunction": {
-            "Type": "AWS::Lambda::Function",
-            "Properties": {
-              "Code": {
-                "S3Bucket": {
-                  "Ref": "ServerlessDeploymentBucket"
-                },
-                "S3Key": "serverless/serverless-todo-app/dev/1764563166007-2025-12-01T04:26:06.007Z/custom-resources.zip"
-              },
-              "FunctionName": "serverless-todo-app-dev-custom-resource-apigw-cw-role",
-              "Handler": "api-gateway-cloud-watch-role/handler.handler",
-              "MemorySize": 1024,
-              "Runtime": "nodejs18.x",
-              "Timeout": 180,
-              "Role": {
-                "Fn::GetAtt": [
-                  "IamRoleCustomResourcesLambdaExecution",
-                  "Arn"
-                ]
-              }
-            },
-            "DependsOn": [
-              "IamRoleCustomResourcesLambdaExecution"
-            ]
-          },
-          "GetTodosIamRoleLambdaExecution": {
-            "Type": "AWS::IAM::Role",
-            "Properties": {
-              "AssumeRolePolicyDocument": {
-                "Version": "2012-10-17",
-                "Statement": [
-                  {
-                    "Effect": "Allow",
-                    "Principal": {
-                      "Service": [
-                        "lambda.amazonaws.com"
-                      ]
-                    },
-                    "Action": [
-                      "sts:AssumeRole"
-                    ]
-                  }
-                ]
-              },
-              "Policies": [
-                {
-                  "PolicyName": {
-                    "Fn::Join": [
-                      "-",
-                      [
-                        "serverless-todo-app",
-                        "dev",
-                        "lambda"
-                      ]
-                    ]
-                  },
-                  "PolicyDocument": {
-                    "Version": "2012-10-17",
-                    "Statement": [
-                      {
-                        "Effect": "Allow",
-                        "Action": [
-                          "logs:CreateLogStream",
-                          "logs:CreateLogGroup",
-                          "logs:PutLogEvents"
-                        ],
-                        "Resource": [
-                          {
-                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/serverless-todo-app-dev-GetTodos:*:*"
-                          }
-                        ]
-                      },
-                      {
-                        "Effect": "Allow",
-                        "Action": [
-                          "dynamodb:Query"
-                        ],
-                        "Resource": "arn:aws:dynamodb:us-east-2:719705352300:table/Todos-dev/index/UserIdCreatedAtIndex"
-                      }
-                    ]
-                  }
-                }
-              ],
-              "Path": "/",
-              "RoleName": {
-                "Fn::Join": [
-                  "-",
-                  [
-                    "serverless-todo-app",
-                    "dev",
-                    "GetTodos",
-                    {
-                      "Ref": "AWS::Region"
-                    },
-                    "lambdaRole"
-                  ]
-                ]
-              },
-              "ManagedPolicyArns": []
-            }
-          },
-          "CreateTodoIamRoleLambdaExecution": {
-            "Type": "AWS::IAM::Role",
-            "Properties": {
-              "AssumeRolePolicyDocument": {
-                "Version": "2012-10-17",
-                "Statement": [
-                  {
-                    "Effect": "Allow",
-                    "Principal": {
-                      "Service": [
-                        "lambda.amazonaws.com"
-                      ]
-                    },
-                    "Action": [
-                      "sts:AssumeRole"
-                    ]
-                  }
-                ]
-              },
-              "Policies": [
-                {
-                  "PolicyName": {
-                    "Fn::Join": [
-                      "-",
-                      [
-                        "serverless-todo-app",
-                        "dev",
-                        "lambda"
-                      ]
-                    ]
-                  },
-                  "PolicyDocument": {
-                    "Version": "2012-10-17",
-                    "Statement": [
-                      {
-                        "Effect": "Allow",
-                        "Action": [
-                          "logs:CreateLogStream",
-                          "logs:CreateLogGroup",
-                          "logs:PutLogEvents"
-                        ],
-                        "Resource": [
-                          {
-                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/serverless-todo-app-dev-CreateTodo:*:*"
-                          }
-                        ]
-                      },
-                      {
-                        "Effect": "Allow",
-                        "Action": [
-                          "dynamodb:PutItem"
-                        ],
-                        "Resource": "arn:aws:dynamodb:us-east-2:719705352300:table/Todos-dev"
-                      }
-                    ]
-                  }
-                }
-              ],
-              "Path": "/",
-              "RoleName": {
-                "Fn::Join": [
-                  "-",
-                  [
-                    "serverless-todo-app",
-                    "dev",
-                    "CreateTodo",
-                    {
-                      "Ref": "AWS::Region"
-                    },
-                    "lambdaRole"
-                  ]
-                ]
-              },
-              "ManagedPolicyArns": []
-            }
-          },
-          "UpdateTodoIamRoleLambdaExecution": {
-            "Type": "AWS::IAM::Role",
-            "Properties": {
-              "AssumeRolePolicyDocument": {
-                "Version": "2012-10-17",
-                "Statement": [
-                  {
-                    "Effect": "Allow",
-                    "Principal": {
-                      "Service": [
-                        "lambda.amazonaws.com"
-                      ]
-                    },
-                    "Action": [
-                      "sts:AssumeRole"
-                    ]
-                  }
-                ]
-              },
-              "Policies": [
-                {
-                  "PolicyName": {
-                    "Fn::Join": [
-                      "-",
-                      [
-                        "serverless-todo-app",
-                        "dev",
-                        "lambda"
-                      ]
-                    ]
-                  },
-                  "PolicyDocument": {
-                    "Version": "2012-10-17",
-                    "Statement": [
-                      {
-                        "Effect": "Allow",
-                        "Action": [
-                          "logs:CreateLogStream",
-                          "logs:CreateLogGroup",
-                          "logs:PutLogEvents"
-                        ],
-                        "Resource": [
-                          {
-                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/serverless-todo-app-dev-UpdateTodo:*:*"
-                          }
-                        ]
-                      },
-                      {
-                        "Effect": "Allow",
-                        "Action": [
-                          "dynamodb:UpdateItem"
-                        ],
-                        "Resource": "arn:aws:dynamodb:us-east-2:719705352300:table/Todos-dev"
-                      }
-                    ]
-                  }
-                }
-              ],
-              "Path": "/",
-              "RoleName": {
-                "Fn::Join": [
-                  "-",
-                  [
-                    "serverless-todo-app",
-                    "dev",
-                    "UpdateTodo",
-                    {
-                      "Ref": "AWS::Region"
-                    },
-                    "lambdaRole"
-                  ]
-                ]
-              },
-              "ManagedPolicyArns": []
-            }
-          },
-          "DeleteTodoIamRoleLambdaExecution": {
-            "Type": "AWS::IAM::Role",
-            "Properties": {
-              "AssumeRolePolicyDocument": {
-                "Version": "2012-10-17",
-                "Statement": [
-                  {
-                    "Effect": "Allow",
-                    "Principal": {
-                      "Service": [
-                        "lambda.amazonaws.com"
-                      ]
-                    },
-                    "Action": [
-                      "sts:AssumeRole"
-                    ]
-                  }
-                ]
-              },
-              "Policies": [
-                {
-                  "PolicyName": {
-                    "Fn::Join": [
-                      "-",
-                      [
-                        "serverless-todo-app",
-                        "dev",
-                        "lambda"
-                      ]
-                    ]
-                  },
-                  "PolicyDocument": {
-                    "Version": "2012-10-17",
-                    "Statement": [
-                      {
-                        "Effect": "Allow",
-                        "Action": [
-                          "logs:CreateLogStream",
-                          "logs:CreateLogGroup",
-                          "logs:PutLogEvents"
-                        ],
-                        "Resource": [
-                          {
-                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/serverless-todo-app-dev-DeleteTodo:*:*"
-                          }
-                        ]
-                      },
-                      {
-                        "Effect": "Allow",
-                        "Action": [
-                          "dynamodb:DeleteItem"
-                        ],
-                        "Resource": "arn:aws:dynamodb:us-east-2:719705352300:table/Todos-dev"
-                      }
-                    ]
-                  }
-                }
-              ],
-              "Path": "/",
-              "RoleName": {
-                "Fn::Join": [
-                  "-",
-                  [
-                    "serverless-todo-app",
-                    "dev",
-                    "DeleteTodo",
-                    {
-                      "Ref": "AWS::Region"
-                    },
-                    "lambdaRole"
-                  ]
-                ]
-              },
-              "ManagedPolicyArns": []
-            }
-          },
-          "GenerateUploadUrlIamRoleLambdaExecution": {
-            "Type": "AWS::IAM::Role",
-            "Properties": {
-              "AssumeRolePolicyDocument": {
-                "Version": "2012-10-17",
-                "Statement": [
-                  {
-                    "Effect": "Allow",
-                    "Principal": {
-                      "Service": [
-                        "lambda.amazonaws.com"
-                      ]
-                    },
-                    "Action": [
-                      "sts:AssumeRole"
-                    ]
-                  }
-                ]
-              },
-              "Policies": [
-                {
-                  "PolicyName": {
-                    "Fn::Join": [
-                      "-",
-                      [
-                        "serverless-todo-app",
-                        "dev",
-                        "lambda"
-                      ]
-                    ]
-                  },
-                  "PolicyDocument": {
-                    "Version": "2012-10-17",
-                    "Statement": [
-                      {
-                        "Effect": "Allow",
-                        "Action": [
-                          "logs:CreateLogStream",
-                          "logs:CreateLogGroup",
-                          "logs:PutLogEvents"
-                        ],
-                        "Resource": [
-                          {
-                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/serverless-todo-app-dev-GenerateUploadUrl:*:*"
-                          }
-                        ]
-                      },
-                      {
-                        "Effect": "Allow",
-                        "Action": [
-                          "s3:PutObject",
-                          "s3:GetObject"
-                        ],
-                        "Resource": "arn:aws:s3:::todo-attachments-dev-719705352300/*"
-                      },
-                      {
-                        "Effect": "Allow",
-                        "Action": [
-                          "dynamodb:GetItem",
-                          "dynamodb:UpdateItem"
-                        ],
-                        "Resource": "arn:aws:dynamodb:us-east-2:719705352300:table/Todos-dev"
-                      }
-                    ]
-                  }
-                }
-              ],
-              "Path": "/",
-              "RoleName": {
-                "Fn::Join": [
-                  "-",
-                  [
-                    "serverless-todo-app",
-                    "dev",
-                    "GenerateUploadUrl",
-                    {
-                      "Ref": "AWS::Region"
-                    },
-                    "lambdaRole"
-                  ]
-                ]
-              },
-              "ManagedPolicyArns": []
-            }
-          },
-          "TodosTable": {
-            "Type": "AWS::DynamoDB::Table",
-            "Properties": {
-              "TableName": "Todos-dev",
-              "BillingMode": "PAY_PER_REQUEST",
-              "AttributeDefinitions": [
-                {
-                  "AttributeName": "userId",
-                  "AttributeType": "S"
-                },
-                {
-                  "AttributeName": "todoId",
-                  "AttributeType": "S"
-                },
-                {
-                  "AttributeName": "createdAt",
-                  "AttributeType": "S"
-                }
-              ],
-              "KeySchema": [
-                {
-                  "AttributeName": "userId",
-                  "KeyType": "HASH"
-                },
-                {
-                  "AttributeName": "todoId",
-                  "KeyType": "RANGE"
-                }
-              ],
-              "GlobalSecondaryIndexes": [
-                {
-                  "IndexName": "UserIdCreatedAtIndex",
-                  "KeySchema": [
-                    {
-                      "AttributeName": "userId",
-                      "KeyType": "HASH"
-                    },
-                    {
-                      "AttributeName": "createdAt",
-                      "KeyType": "RANGE"
-                    }
-                  ],
-                  "Projection": {
-                    "ProjectionType": "ALL"
-                  }
-                }
-              ]
-            }
-          },
-          "AttachmentsBucket": {
-            "Type": "AWS::S3::Bucket",
-            "Properties": {
-              "BucketName": "todo-attachments-dev-719705352300",
-              "PublicAccessBlockConfiguration": {
-                "BlockPublicAcls": true,
-                "IgnorePublicAcls": true,
-                "BlockPublicPolicy": true,
-                "RestrictPublicBuckets": true
-              },
-              "BucketEncryption": {
-                "ServerSideEncryptionConfiguration": [
-                  {
-                    "ServerSideEncryptionByDefault": {
-                      "SSEAlgorithm": "AES256"
-                    }
-                  }
-                ]
-              },
-              "CorsConfiguration": {
-                "CorsRules": [
-                  {
-                    "AllowedOrigins": [
-                      "*"
-                    ],
-                    "AllowedHeaders": [
-                      "*"
-                    ],
-                    "AllowedMethods": [
-                      "GET",
-                      "PUT",
-                      "POST",
-                      "DELETE",
-                      "HEAD"
-                    ],
-                    "MaxAge": 3000
-                  }
-                ]
+              "ResponseParameters": {
+                "gatewayresponse.header.Access-Control-Allow-Origin": "'https://ubiquitous-fishstick-67q56x4pqr92wxg-3000.app.github.dev'",
+                "gatewayresponse.header.Access-Control-Allow-Headers": "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'",
+                "gatewayresponse.header.Access-Control-Allow-Methods": "'GET,POST,PATCH,DELETE,OPTIONS'"
               }
             }
           }
@@ -1976,7 +1236,7 @@
           "AuthorizerLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "AuthorizerLambdaVersionBZlSf6WpWze7smmMbh685FvfViqJ9zmCJJ9Mwwn2zAQ"
+              "Ref": "AuthorizerLambdaVersionYGE0J1ksTvV3FmPgLFq6z5IGBTvXa4snptwxs8iDUY"
             },
             "Export": {
               "Name": "sls-serverless-todo-app-dev-AuthorizerLambdaFunctionQualifiedArn"
@@ -1985,7 +1245,7 @@
           "GetTodosLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "GetTodosLambdaVersion9x2YlZ1mG9sB20mGgk1blZ2seQV9PujQo2gk0DuV95w"
+              "Ref": "GetTodosLambdaVersion2pFiaZ4lTsswYav9GV8O40fMO5J8Fob0MvyVirr7dQ"
             },
             "Export": {
               "Name": "sls-serverless-todo-app-dev-GetTodosLambdaFunctionQualifiedArn"
@@ -1994,7 +1254,7 @@
           "CreateTodoLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "CreateTodoLambdaVersionZYojp0f0k3DuSqIPAB6jR6Qf6Db5NG1vYBYt7xV2FTc"
+              "Ref": "CreateTodoLambdaVersionK6mTlmXkdbcmMRSarw7cPVayHUxJ2WCAXba37NhdqI"
             },
             "Export": {
               "Name": "sls-serverless-todo-app-dev-CreateTodoLambdaFunctionQualifiedArn"
@@ -2003,7 +1263,7 @@
           "UpdateTodoLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "UpdateTodoLambdaVersionAuSJe0ziDWGPAIa7YzVISJp4aoUooo9X4Xu2rcY22c"
+              "Ref": "UpdateTodoLambdaVersionQytTqVTRBdRtyu7y75zYVIqyTda8skrBC00Q2K4X0"
             },
             "Export": {
               "Name": "sls-serverless-todo-app-dev-UpdateTodoLambdaFunctionQualifiedArn"
@@ -2012,7 +1272,7 @@
           "DeleteTodoLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "DeleteTodoLambdaVersionVf5clR8dzDVFlqCZYbJmJcizB48Fjm9wGel8KjcOsI"
+              "Ref": "DeleteTodoLambdaVersioniEIVVtTQ9ASptHfRGhiahqllBXbGTrBz87EUtjMw"
             },
             "Export": {
               "Name": "sls-serverless-todo-app-dev-DeleteTodoLambdaFunctionQualifiedArn"
@@ -2021,7 +1281,7 @@
           "GenerateUploadUrlLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "GenerateUploadUrlLambdaVersionMzIkN9mJ7YBtvjaEnOTiQZHfvkudF3ogsip346pWwEg"
+              "Ref": "GenerateUploadUrlLambdaVersionHLC01v7nVu8WrZ30Af35a1fnUIDEJvWpklTgf9ew8"
             },
             "Export": {
               "Name": "sls-serverless-todo-app-dev-GenerateUploadUrlLambdaFunctionQualifiedArn"
@@ -2052,12 +1312,6 @@
             "Export": {
               "Name": "sls-serverless-todo-app-dev-ServiceEndpoint"
             }
-          },
-          "TodosTableName": {
-            "Value": "Todos-dev"
-          },
-          "AttachmentsBucketName": {
-            "Value": "todo-attachments-dev-719705352300"
           }
         }
       },
@@ -2146,9 +1400,9 @@
       "vpc": {}
     },
     "custom": {
+      "webOrigin": "https://ubiquitous-fishstick-67q56x4pqr92wxg-3000.app.github.dev",
       "corsOrigins": [
-        "https://ubiquitous-fishstick-67q56x4pqr92wxg-3000.app.github.dev",
-        "http://localhost:3000"
+        "https://ubiquitous-fishstick-67q56x4pqr92wxg-3000.app.github.dev"
       ],
       "corsHeaders": [
         "Content-Type",
@@ -2160,11 +1414,8 @@
       "esbuild": {
         "bundle": true,
         "minify": true,
-        "sourcemap": false,
         "target": "node18",
         "platform": "node",
-        "treeShaking": true,
-        "keepNames": false,
         "exclude": [
           "aws-sdk"
         ]
@@ -2180,14 +1431,12 @@
         "handler": "src/lambda/auth/auth0Authorizer.handler",
         "events": [],
         "name": "serverless-todo-app-dev-Authorizer",
-        "package": {
-          "artifact": ".serverless/Authorizer.zip"
-        },
+        "package": {},
         "memory": 1024,
         "timeout": 6,
         "runtime": "nodejs18.x",
         "vpc": {},
-        "versionLogicalId": "AuthorizerLambdaVersionBZlSf6WpWze7smmMbh685FvfViqJ9zmCJJ9Mwwn2zAQ"
+        "versionLogicalId": "AuthorizerLambdaVersionYGE0J1ksTvV3FmPgLFq6z5IGBTvXa4snptwxs8iDUY"
       },
       "GetTodos": {
         "handler": "src/lambda/http/getTodos.handler",
@@ -2210,8 +1459,7 @@
                 ],
                 "allowCredentials": false,
                 "origins": [
-                  "https://ubiquitous-fishstick-67q56x4pqr92wxg-3000.app.github.dev",
-                  "http://localhost:3000"
+                  "https://ubiquitous-fishstick-67q56x4pqr92wxg-3000.app.github.dev"
                 ]
               },
               "authorizer": {
@@ -2226,20 +1474,13 @@
             }
           }
         ],
-        "iamRoleStatements": [
-          {
-            "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"GetTodosIamRoleLambdaExecution\"][\"Properties\"][\"Policies\"][0][\"PolicyDocument\"][\"Statement\"][1]"
-          }
-        ],
         "name": "serverless-todo-app-dev-GetTodos",
-        "package": {
-          "artifact": ".serverless/GetTodos.zip"
-        },
+        "package": {},
         "memory": 1024,
         "timeout": 6,
         "runtime": "nodejs18.x",
         "vpc": {},
-        "versionLogicalId": "GetTodosLambdaVersion9x2YlZ1mG9sB20mGgk1blZ2seQV9PujQo2gk0DuV95w"
+        "versionLogicalId": "GetTodosLambdaVersion2pFiaZ4lTsswYav9GV8O40fMO5J8Fob0MvyVirr7dQ"
       },
       "CreateTodo": {
         "handler": "src/lambda/http/createTodo.handler",
@@ -2262,8 +1503,7 @@
                 ],
                 "allowCredentials": false,
                 "origins": [
-                  "https://ubiquitous-fishstick-67q56x4pqr92wxg-3000.app.github.dev",
-                  "http://localhost:3000"
+                  "https://ubiquitous-fishstick-67q56x4pqr92wxg-3000.app.github.dev"
                 ]
               },
               "authorizer": {
@@ -2274,31 +1514,17 @@
                 "managedExternally": false,
                 "identitySource": "method.request.header.Authorization"
               },
-              "request": {
-                "schemas": {
-                  "application/json": {
-                    "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"ApiGatewayMethodTodosPostApplicationJsonModel\"][\"Properties\"][\"Schema\"]"
-                  }
-                }
-              },
               "integration": "AWS_PROXY"
             }
           }
         ],
-        "iamRoleStatements": [
-          {
-            "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"CreateTodoIamRoleLambdaExecution\"][\"Properties\"][\"Policies\"][0][\"PolicyDocument\"][\"Statement\"][1]"
-          }
-        ],
         "name": "serverless-todo-app-dev-CreateTodo",
-        "package": {
-          "artifact": ".serverless/CreateTodo.zip"
-        },
+        "package": {},
         "memory": 1024,
         "timeout": 6,
         "runtime": "nodejs18.x",
         "vpc": {},
-        "versionLogicalId": "CreateTodoLambdaVersionZYojp0f0k3DuSqIPAB6jR6Qf6Db5NG1vYBYt7xV2FTc"
+        "versionLogicalId": "CreateTodoLambdaVersionK6mTlmXkdbcmMRSarw7cPVayHUxJ2WCAXba37NhdqI"
       },
       "UpdateTodo": {
         "handler": "src/lambda/http/updateTodo.handler",
@@ -2321,8 +1547,7 @@
                 ],
                 "allowCredentials": false,
                 "origins": [
-                  "https://ubiquitous-fishstick-67q56x4pqr92wxg-3000.app.github.dev",
-                  "http://localhost:3000"
+                  "https://ubiquitous-fishstick-67q56x4pqr92wxg-3000.app.github.dev"
                 ]
               },
               "authorizer": {
@@ -2333,31 +1558,17 @@
                 "managedExternally": false,
                 "identitySource": "method.request.header.Authorization"
               },
-              "request": {
-                "schemas": {
-                  "application/json": {
-                    "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"ApiGatewayMethodTodosTodoidVarPatchApplicationJsonModel\"][\"Properties\"][\"Schema\"]"
-                  }
-                }
-              },
               "integration": "AWS_PROXY"
             }
           }
         ],
-        "iamRoleStatements": [
-          {
-            "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"UpdateTodoIamRoleLambdaExecution\"][\"Properties\"][\"Policies\"][0][\"PolicyDocument\"][\"Statement\"][1]"
-          }
-        ],
         "name": "serverless-todo-app-dev-UpdateTodo",
-        "package": {
-          "artifact": ".serverless/UpdateTodo.zip"
-        },
+        "package": {},
         "memory": 1024,
         "timeout": 6,
         "runtime": "nodejs18.x",
         "vpc": {},
-        "versionLogicalId": "UpdateTodoLambdaVersionAuSJe0ziDWGPAIa7YzVISJp4aoUooo9X4Xu2rcY22c"
+        "versionLogicalId": "UpdateTodoLambdaVersionQytTqVTRBdRtyu7y75zYVIqyTda8skrBC00Q2K4X0"
       },
       "DeleteTodo": {
         "handler": "src/lambda/http/deleteTodo.handler",
@@ -2380,8 +1591,7 @@
                 ],
                 "allowCredentials": false,
                 "origins": [
-                  "https://ubiquitous-fishstick-67q56x4pqr92wxg-3000.app.github.dev",
-                  "http://localhost:3000"
+                  "https://ubiquitous-fishstick-67q56x4pqr92wxg-3000.app.github.dev"
                 ]
               },
               "authorizer": {
@@ -2396,20 +1606,13 @@
             }
           }
         ],
-        "iamRoleStatements": [
-          {
-            "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"DeleteTodoIamRoleLambdaExecution\"][\"Properties\"][\"Policies\"][0][\"PolicyDocument\"][\"Statement\"][1]"
-          }
-        ],
         "name": "serverless-todo-app-dev-DeleteTodo",
-        "package": {
-          "artifact": ".serverless/DeleteTodo.zip"
-        },
+        "package": {},
         "memory": 1024,
         "timeout": 6,
         "runtime": "nodejs18.x",
         "vpc": {},
-        "versionLogicalId": "DeleteTodoLambdaVersionVf5clR8dzDVFlqCZYbJmJcizB48Fjm9wGel8KjcOsI"
+        "versionLogicalId": "DeleteTodoLambdaVersioniEIVVtTQ9ASptHfRGhiahqllBXbGTrBz87EUtjMw"
       },
       "GenerateUploadUrl": {
         "handler": "src/lambda/http/generateUploadUrl.handler",
@@ -2432,8 +1635,7 @@
                 ],
                 "allowCredentials": false,
                 "origins": [
-                  "https://ubiquitous-fishstick-67q56x4pqr92wxg-3000.app.github.dev",
-                  "http://localhost:3000"
+                  "https://ubiquitous-fishstick-67q56x4pqr92wxg-3000.app.github.dev"
                 ]
               },
               "authorizer": {
@@ -2448,126 +1650,47 @@
             }
           }
         ],
-        "iamRoleStatements": [
-          {
-            "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"GenerateUploadUrlIamRoleLambdaExecution\"][\"Properties\"][\"Policies\"][0][\"PolicyDocument\"][\"Statement\"][1]"
-          },
-          {
-            "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"GenerateUploadUrlIamRoleLambdaExecution\"][\"Properties\"][\"Policies\"][0][\"PolicyDocument\"][\"Statement\"][2]"
-          }
-        ],
         "name": "serverless-todo-app-dev-GenerateUploadUrl",
-        "package": {
-          "artifact": ".serverless/GenerateUploadUrl.zip"
-        },
+        "package": {},
         "memory": 1024,
         "timeout": 6,
         "runtime": "nodejs18.x",
         "vpc": {},
-        "versionLogicalId": "GenerateUploadUrlLambdaVersionMzIkN9mJ7YBtvjaEnOTiQZHfvkudF3ogsip346pWwEg"
+        "versionLogicalId": "GenerateUploadUrlLambdaVersionHLC01v7nVu8WrZ30Af35a1fnUIDEJvWpklTgf9ew8"
       }
     },
     "resources": {
       "Resources": {
-        "TodosTable": {
-          "Type": "AWS::DynamoDB::Table",
+        "GatewayResponseDefault4XX": {
+          "Type": "AWS::ApiGateway::GatewayResponse",
           "Properties": {
-            "TableName": "Todos-dev",
-            "BillingMode": "PAY_PER_REQUEST",
-            "AttributeDefinitions": [
-              {
-                "AttributeName": "userId",
-                "AttributeType": "S"
-              },
-              {
-                "AttributeName": "todoId",
-                "AttributeType": "S"
-              },
-              {
-                "AttributeName": "createdAt",
-                "AttributeType": "S"
-              }
-            ],
-            "KeySchema": [
-              {
-                "AttributeName": "userId",
-                "KeyType": "HASH"
-              },
-              {
-                "AttributeName": "todoId",
-                "KeyType": "RANGE"
-              }
-            ],
-            "GlobalSecondaryIndexes": [
-              {
-                "IndexName": "UserIdCreatedAtIndex",
-                "KeySchema": [
-                  {
-                    "AttributeName": "userId",
-                    "KeyType": "HASH"
-                  },
-                  {
-                    "AttributeName": "createdAt",
-                    "KeyType": "RANGE"
-                  }
-                ],
-                "Projection": {
-                  "ProjectionType": "ALL"
-                }
-              }
-            ]
+            "ResponseType": "DEFAULT_4XX",
+            "RestApiId": {
+              "Ref": "ApiGatewayRestApi"
+            },
+            "ResponseParameters": {
+              "gatewayresponse.header.Access-Control-Allow-Origin": "'https://ubiquitous-fishstick-67q56x4pqr92wxg-3000.app.github.dev'",
+              "gatewayresponse.header.Access-Control-Allow-Headers": "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'",
+              "gatewayresponse.header.Access-Control-Allow-Methods": "'GET,POST,PATCH,DELETE,OPTIONS'"
+            }
           }
         },
-        "AttachmentsBucket": {
-          "Type": "AWS::S3::Bucket",
+        "GatewayResponseDefault5XX": {
+          "Type": "AWS::ApiGateway::GatewayResponse",
           "Properties": {
-            "BucketName": "todo-attachments-dev-719705352300",
-            "PublicAccessBlockConfiguration": {
-              "BlockPublicAcls": true,
-              "IgnorePublicAcls": true,
-              "BlockPublicPolicy": true,
-              "RestrictPublicBuckets": true
+            "ResponseType": "DEFAULT_5XX",
+            "RestApiId": {
+              "Ref": "ApiGatewayRestApi"
             },
-            "BucketEncryption": {
-              "ServerSideEncryptionConfiguration": [
-                {
-                  "ServerSideEncryptionByDefault": {
-                    "SSEAlgorithm": "AES256"
-                  }
-                }
-              ]
-            },
-            "CorsConfiguration": {
-              "CorsRules": [
-                {
-                  "AllowedOrigins": [
-                    "*"
-                  ],
-                  "AllowedHeaders": [
-                    "*"
-                  ],
-                  "AllowedMethods": [
-                    "GET",
-                    "PUT",
-                    "POST",
-                    "DELETE",
-                    "HEAD"
-                  ],
-                  "MaxAge": 3000
-                }
-              ]
+            "ResponseParameters": {
+              "gatewayresponse.header.Access-Control-Allow-Origin": "'https://ubiquitous-fishstick-67q56x4pqr92wxg-3000.app.github.dev'",
+              "gatewayresponse.header.Access-Control-Allow-Headers": "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'",
+              "gatewayresponse.header.Access-Control-Allow-Methods": "'GET,POST,PATCH,DELETE,OPTIONS'"
             }
           }
         }
       },
-      "Outputs": {
-        "TodosTableName": {
-          "Value": "Todos-dev"
-        },
-        "AttachmentsBucketName": {
-          "Value": "todo-attachments-dev-719705352300"
-        }
-      }
+      "Outputs": {}
     },
     "configValidationMode": "warn",
     "serviceFilename": "serverless.yml",
@@ -2583,25 +1706,6 @@
       "provider": {
         "$ref": "$[\"service\"][\"provider\"]"
       },
-      "package": {
-        "individually": true,
-        "patterns": [
-          "!**/*.md",
-          "!**/test/**",
-          "!**/__tests__/**",
-          "!**/.git/**",
-          "!**/.github/**",
-          "!**/.vscode/**",
-          "!**/.serverless/**",
-          "!**/.webpack/**",
-          "!**/node_modules/aws-sdk/**",
-          "!**/frontend/**",
-          "!**/dist/**",
-          "!**/build/**",
-          "!**/*.map"
-        ],
-        "artifactsS3KeyDirname": "serverless/serverless-todo-app/dev/code-artifacts"
-      },
       "functions": {
         "$ref": "$[\"service\"][\"functions\"]"
       },
@@ -2613,8 +1717,7 @@
     "isDashboardMonitoringPreconfigured": false
   },
   "package": {
-    "individually": true,
-    "artifactDirectoryName": "serverless/serverless-todo-app/dev/1764563166007-2025-12-01T04:26:06.007Z",
-    "artifact": ""
+    "artifactDirectoryName": "serverless/serverless-todo-app/dev/1764578216468-2025-12-01T08:36:56.468Z",
+    "artifact": "serverless-todo-app.zip"
   }
 }
