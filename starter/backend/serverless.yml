@@ -6,6 +6,15 @@ plugins:
   - serverless-esbuild
 
 custom:
+  corsOrigins:
+    - https://ubiquitous-fishstick-67q56x4pqr92wxg-3000.app.github.dev
+    - http://localhost:3000
+  corsHeaders:
+    - Content-Type
+    - X-Amz-Date
+    - Authorization
+    - X-Api-Key
+    - X-Amz-Security-Token
   esbuild:
     bundle: true
     minify: true
@@ -15,7 +24,7 @@ custom:
     treeShaking: true
     keepNames: false
     exclude:
-      - aws-sdk   # exclude v2 SDK (Lambda runtime has it)
+      - aws-sdk   # v2 is in Lambda runtime
 
 provider:
   name: aws
@@ -75,7 +84,10 @@ functions:
       - http:
           path: todos
           method: get
-          cors: true
+          cors:
+            origins: ${self:custom.corsOrigins}
+            headers: ${self:custom.corsHeaders}
+            allowCredentials: false
           authorizer: Authorizer
     iamRoleStatements:
       - Effect: Allow
@@ -89,15 +101,9 @@ functions:
           path: todos
           method: post
           cors:
-            origins:
-              - '*'
-            headers:
-              - Content-Type
-              - X-Amz-Date
-              - Authorization
-              - X-Api-Key
-              - X-Amz-Security-Token
-            allowCredentials: true
+            origins: ${self:custom.corsOrigins}
+            headers: ${self:custom.corsHeaders}
+            allowCredentials: false
           authorizer: Authorizer
           request:
             schemas:
@@ -119,7 +125,10 @@ functions:
       - http:
           path: todos/{todoId}
           method: patch
-          cors: true
+          cors:
+            origins: ${self:custom.corsOrigins}
+            headers: ${self:custom.corsHeaders}
+            allowCredentials: false
           authorizer: Authorizer
           request:
             schemas:
@@ -142,7 +151,10 @@ functions:
       - http:
           path: todos/{todoId}
           method: delete
-          cors: true
+          cors:
+            origins: ${self:custom.corsOrigins}
+            headers: ${self:custom.corsHeaders}
+            allowCredentials: false
           authorizer: Authorizer
     iamRoleStatements:
       - Effect: Allow
@@ -155,7 +167,10 @@ functions:
       - http:
           path: todos/{todoId}/attachment
           method: post
-          cors: true
+          cors:
+            origins: ${self:custom.corsOrigins}
+            headers: ${self:custom.corsHeaders}
+            allowCredentials: false
           authorizer: Authorizer
     iamRoleStatements:
       - Effect: Allow
