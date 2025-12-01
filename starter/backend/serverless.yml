@@ -14,7 +14,8 @@ custom:
     platform: node
     treeShaking: true
     keepNames: false
-    exclude: ['aws-sdk']   # exclude v2 SDK (Lambda has it built-in)
+    exclude:
+      - aws-sdk   # exclude v2 SDK (Lambda runtime has it)
 
 provider:
   name: aws
@@ -35,7 +36,6 @@ provider:
     AUTH0_JWKS_URL: https://dev-mounika1810.us.auth0.com/.well-known/jwks.json
     AUTH0_AUDIENCE: https://todo-api
     AUTH0_ISSUER: https://dev-mounika1810.us.auth0.com/
-
   iam:
     role:
       statements:
@@ -76,44 +76,42 @@ functions:
           path: todos
           method: get
           cors: true
-          authorizer:
-            name: Authorizer
+          authorizer: Authorizer
     iamRoleStatements:
       - Effect: Allow
         Action: dynamodb:Query
         Resource: arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.TODOS_INDEX_NAME}
 
   CreateTodo:
-  handler: src/lambda/http/createTodo.handler
-  events:
-    - http:
-        path: todos
-        method: post
-        cors:
-          origins:
-            - '*'
-          headers:
-            - Content-Type
-            - X-Amz-Date
-            - Authorization
-            - X-Api-Key
-            - X-Amz-Security-Token
-          allowCredentials: true
-        authorizer:
-          name: Authorizer
-        request:
-          schemas:
-            application/json:
-              type: object
-              required: [name, dueDate]
-              additionalProperties: false
-              properties:
-                name: { type: string, minLength: 1, maxLength: 200 }
-                dueDate: { type: string, pattern: "^\\d{4}-\\d{2}-\\d{2}$" }
-  iamRoleStatements:
-    - Effect: Allow
-      Action: dynamodb:PutItem
-      Resource: arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.TODOS_TABLE}
+    handler: src/lambda/http/createTodo.handler
+    events:
+      - http:
+          path: todos
+          method: post
+          cors:
+            origins:
+              - '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+            allowCredentials: true
+          authorizer: Authorizer
+          request:
+            schemas:
+              application/json:
+                type: object
+                required: [name, dueDate]
+                additionalProperties: false
+                properties:
+                  name: { type: string, minLength: 1, maxLength: 200 }
+                  dueDate: { type: string, pattern: "^\\d{4}-\\d{2}-\\d{2}$" }
+    iamRoleStatements:
+      - Effect: Allow
+        Action: dynamodb:PutItem
+        Resource: arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.TODOS_TABLE}
 
   UpdateTodo:
     handler: src/lambda/http/updateTodo.handler
@@ -122,8 +120,7 @@ functions:
           path: todos/{todoId}
           method: patch
           cors: true
-          authorizer:
-            name: Authorizer
+          authorizer: Authorizer
           request:
             schemas:
               application/json:
@@ -146,8 +143,7 @@ functions:
           path: todos/{todoId}
           method: delete
           cors: true
-          authorizer:
-            name: Authorizer
+          authorizer: Authorizer
     iamRoleStatements:
       - Effect: Allow
         Action: dynamodb:DeleteItem
@@ -160,8 +156,7 @@ functions:
           path: todos/{todoId}/attachment
           method: post
           cors: true
-          authorizer:
-            name: Authorizer
+          authorizer: Authorizer
     iamRoleStatements:
       - Effect: Allow
         Action:
