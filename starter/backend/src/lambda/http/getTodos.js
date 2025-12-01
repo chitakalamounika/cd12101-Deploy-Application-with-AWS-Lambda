@@ -7,13 +7,13 @@ const {
 
 const TABLE = process.env.TODOS_TABLE;                // e.g. Todos-dev
 const INDEX = process.env.TODOS_INDEX_NAME;           // e.g. UserIdCreatedAtIndex
-const ORIGIN = process.env.WEB_ORIGIN;                // e.g. your app.github.dev origin
+const ORIGIN = process.env.WEB_ORIGIN || '*';                // e.g. your app.github.dev origin
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 
 const cors = () => ({
   'Access-Control-Allow-Origin': ORIGIN,
-  'Access-Control-Allow-Credentials': false, // matches serverless.yml
+  'Access-Control-Allow-Credentials': true, // matches serverless.yml
   'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token',
   'Access-Control-Allow-Methods': 'OPTIONS,GET'
 });
