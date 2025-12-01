@@ -45,6 +45,7 @@ provider:
     AUTH0_JWKS_URL: https://dev-mounika1810.us.auth0.com/.well-known/jwks.json
     AUTH0_AUDIENCE: https://todo-api
     AUTH0_ISSUER: https://dev-mounika1810.us.auth0.com/
+    WEB_ORIGIN: https://ubiquitous-fishstick-67q56x4pqr92wxg-3000.app.github.dev
   iam:
     role:
       statements:
