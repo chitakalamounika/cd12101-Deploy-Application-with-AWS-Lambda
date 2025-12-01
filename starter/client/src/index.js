@@ -1,3 +1,4 @@
+// src/index.js
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { Auth0Provider } from '@auth0/auth0-react';
@@ -18,11 +19,11 @@ root.render(
     clientId={clientId}
     authorizationParams={{
       redirect_uri: window.location.origin,
-      audience,
+      audience, 
       scope: 'openid profile email read:todo write:todo delete:todo',
     }}
-    cacheLocation="localstorage"
-    useRefreshTokens={true}
+    cacheLocation="localstorage"   
+    useRefreshTokens={true}        
   >
     <App />
   </Auth0Provider>
