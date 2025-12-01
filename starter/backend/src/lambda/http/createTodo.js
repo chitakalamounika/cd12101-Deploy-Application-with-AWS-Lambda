@@ -5,7 +5,7 @@ const { DynamoDBDocumentClient, PutCommand } = require('@aws-sdk/lib-dynamodb');
 
 // Environment variables
 const TABLE = process.env.TODOS_TABLE;
-const ORIGIN = process.env.WEB_ORIGIN;
+const ORIGIN = process.env.WEB_ORIGIN || '*';
 
 // DynamoDB client
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}));
@@ -13,10 +13,9 @@ const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 // CORS helper
 const cors = () => ({
   'Access-Control-Allow-Origin': ORIGIN,
-  'Access-Control-Allow-Credentials': false, // ✅ matches serverless.yml
-  'Access-Control-Allow-Headers':
-    'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token',
-  'Access-Control-Allow-Methods': 'OPTIONS,GET,POST,PATCH,DELETE',
+  'Access-Control-Allow-Credentials': true, 
+  'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token',
+  'Access-Control-Allow-Methods': 'OPTIONS,GET,POST,PATCH,DELETE'
 });
 
 // Extract user ID from the authorizer (works for both REST and HTTP APIs)
