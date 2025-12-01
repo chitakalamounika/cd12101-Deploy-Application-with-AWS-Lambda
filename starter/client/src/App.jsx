@@ -1,5 +1,6 @@
 // src/App.jsx
 import React from 'react';
+import TokenProbe from "./TokenProbe";
 import { useAuth0 } from '@auth0/auth0-react';
 import { BrowserRouter, Link, Route, Routes, Navigate } from 'react-router-dom';
 import { Grid, Menu, Segment, Loader } from 'semantic-ui-react';
@@ -45,6 +46,7 @@ export default function App() {
         <Grid.Row>
           <Grid.Column width={16}>
             <BrowserRouter>
+    <TokenProbe />
               {generateMenu()}
               <Routes>
                 {!isAuthenticated ? (
