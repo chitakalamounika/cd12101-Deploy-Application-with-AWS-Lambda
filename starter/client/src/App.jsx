@@ -1,13 +1,14 @@
 // src/App.jsx
 import React from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
-import { BrowserRouter, Link, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Link, Route, Routes, Navigate } from 'react-router-dom';
 import { Grid, Menu, Segment, Loader } from 'semantic-ui-react';
 
 import Todos from './components/Todos';
 import EditTodo from './components/EditTodo';
 import LogIn from './components/LogIn';
 import NotFound from './components/NotFound';
+import NewTodoInput from './components/NewTodoInput'; // ✅ Added create page
 
 export default function App() {
   const { isAuthenticated, isLoading, loginWithRedirect, logout } = useAuth0();
@@ -28,6 +29,11 @@ export default function App() {
       <Menu.Item as={Link} to="/">
         Home
       </Menu.Item>
+      {isAuthenticated && (
+        <Menu.Item as={Link} to="/create">
+          Create
+        </Menu.Item>
+      )}
       <Menu.Menu position="right">{logInLogOutButton()}</Menu.Menu>
     </Menu>
   );
@@ -58,8 +64,9 @@ export default function App() {
                 ) : (
                   <>
                     <Route path="/" element={<Todos />} />
+                    <Route path="/create" element={<NewTodoInput />} /> {/* ✅ Added route */}
                     <Route path="/todos/:todoId/edit" element={<EditTodo />} />
-                    <Route path="*" element={<NotFound />} />
+                    <Route path="*" element={<Navigate to="/" replace />} />
                   </>
                 )}
               </Routes>
