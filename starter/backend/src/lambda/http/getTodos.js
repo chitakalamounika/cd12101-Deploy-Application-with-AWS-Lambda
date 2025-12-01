@@ -1,24 +1,22 @@
 // backend/src/lambda/http/getTodos.js
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
-const {
-  DynamoDBDocumentClient,
-  QueryCommand
-} = require('@aws-sdk/lib-dynamodb');
+const { DynamoDBDocumentClient, QueryCommand } = require('@aws-sdk/lib-dynamodb');
 
-const TABLE = process.env.TODOS_TABLE;                // e.g. Todos-dev
-const INDEX = process.env.TODOS_INDEX_NAME;           // e.g. UserIdCreatedAtIndex
-const ORIGIN = process.env.WEB_ORIGIN || '*';                // e.g. your app.github.dev origin
+const TABLE  = process.env.TODOS_TABLE;          // e.g. Todos-dev
+const INDEX  = process.env.TODOS_INDEX_NAME;     // e.g. UserIdCreatedAtIndex
+const ORIGIN = process.env.WEB_ORIGIN;           // e.g. https://...app.github.dev
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 
 const cors = () => ({
   'Access-Control-Allow-Origin': ORIGIN,
-  'Access-Control-Allow-Credentials': true, // matches serverless.yml
+  'Access-Control-Allow-Credentials': false, // must match serverless.yml
   'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token',
-  'Access-Control-Allow-Methods': 'OPTIONS,GET'
+  'Access-Control-Allow-Methods': 'OPTIONS,GET',
+  'Content-Type': 'application/json'
 });
 
-// Extract userId from custom/JWT authorizer
+// Works with both custom authorizer (principalId) and JWT authorizer (claims.sub)
 function getUserId(event) {
   const restPrincipal = event?.requestContext?.authorizer?.principalId;
   if (restPrincipal) return restPrincipal;
@@ -29,7 +27,7 @@ function getUserId(event) {
   return sub || null;
 }
 
-// Helpers for pagination token (base64 JSON of DynamoDB key)
+// Pagination helpers (base64-encoded LastEvaluatedKey)
 function encodeNextKey(lastEvaluatedKey) {
   if (!lastEvaluatedKey) return null;
   return Buffer.from(JSON.stringify(lastEvaluatedKey)).toString('base64');
@@ -45,7 +43,7 @@ function decodeNextKey(token) {
 
 exports.handler = async (event) => {
   try {
-    // Preflight
+    // Handle CORS preflight (if it ever reaches the Lambda)
     if (event.httpMethod === 'OPTIONS') {
       return { statusCode: 204, headers: cors(), body: '' };
     }
@@ -56,16 +54,16 @@ exports.handler = async (event) => {
     }
 
     const qs = event.queryStringParameters || {};
-    const limit = Math.min(Math.max(parseInt(qs.limit || '20', 10) || 20, 1), 100); // 1..100
+    const limit = Math.min(Math.max(parseInt(qs.limit || '20', 10) || 20, 1), 100);
     const startKey = decodeNextKey(qs.nextKey);
 
     const params = {
       TableName: TABLE,
-      IndexName: INDEX,
+      IndexName: INDEX, // GSI: userId (HASH), createdAt (RANGE)
       KeyConditionExpression: '#uid = :uid',
       ExpressionAttributeNames: { '#uid': 'userId' },
       ExpressionAttributeValues: { ':uid': userId },
-      ScanIndexForward: false, // newest first by createdAt if that's your GSI sort key
+      ScanIndexForward: false, // newest first by createdAt
       Limit: limit,
       ExclusiveStartKey: startKey
     };
@@ -85,7 +83,7 @@ exports.handler = async (event) => {
     return {
       statusCode: 500,
       headers: cors(),
-      body: JSON.stringify({ error: err.message })
+      body: JSON.stringify({ error: err.message || 'Internal Server Error' })
     };
   }
 };
