@@ -217,7 +217,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/serverless-todo-app/dev/1764499354448-2025-11-30T10:42:34.448Z/Authorizer.zip"
+          "S3Key": "serverless/serverless-todo-app/dev/1764563166007-2025-12-01T04:26:06.007Z/Authorizer.zip"
         },
         "Handler": "src/lambda/auth/auth0Authorizer.handler",
         "Runtime": "nodejs18.x",
@@ -259,7 +259,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/serverless-todo-app/dev/1764499354448-2025-11-30T10:42:34.448Z/GetTodos.zip"
+          "S3Key": "serverless/serverless-todo-app/dev/1764563166007-2025-12-01T04:26:06.007Z/GetTodos.zip"
         },
         "Handler": "src/lambda/http/getTodos.handler",
         "Runtime": "nodejs18.x",
@@ -302,7 +302,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/serverless-todo-app/dev/1764499354448-2025-11-30T10:42:34.448Z/CreateTodo.zip"
+          "S3Key": "serverless/serverless-todo-app/dev/1764563166007-2025-12-01T04:26:06.007Z/CreateTodo.zip"
         },
         "Handler": "src/lambda/http/createTodo.handler",
         "Runtime": "nodejs18.x",
@@ -345,7 +345,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/serverless-todo-app/dev/1764499354448-2025-11-30T10:42:34.448Z/UpdateTodo.zip"
+          "S3Key": "serverless/serverless-todo-app/dev/1764563166007-2025-12-01T04:26:06.007Z/UpdateTodo.zip"
         },
         "Handler": "src/lambda/http/updateTodo.handler",
         "Runtime": "nodejs18.x",
@@ -388,7 +388,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/serverless-todo-app/dev/1764499354448-2025-11-30T10:42:34.448Z/DeleteTodo.zip"
+          "S3Key": "serverless/serverless-todo-app/dev/1764563166007-2025-12-01T04:26:06.007Z/DeleteTodo.zip"
         },
         "Handler": "src/lambda/http/deleteTodo.handler",
         "Runtime": "nodejs18.x",
@@ -431,7 +431,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/serverless-todo-app/dev/1764499354448-2025-11-30T10:42:34.448Z/GenerateUploadUrl.zip"
+          "S3Key": "serverless/serverless-todo-app/dev/1764563166007-2025-12-01T04:26:06.007Z/GenerateUploadUrl.zip"
         },
         "Handler": "src/lambda/http/generateUploadUrl.handler",
         "Runtime": "nodejs18.x",
@@ -487,14 +487,14 @@
         "CodeSha256": "JLGqqTB7/TY3y39Pt1gINTTe036/mi4pJ2agZ+SgVl8="
       }
     },
-    "CreateTodoLambdaVersionsmBy71ljM94LZlIM5JnHZCtzMS0j3OvduQNjsZUce14": {
+    "CreateTodoLambdaVersionZYojp0f0k3DuSqIPAB6jR6Qf6Db5NG1vYBYt7xV2FTc": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "CreateTodoLambdaFunction"
         },
-        "CodeSha256": "QSg0ZfUkf0K4J91wT0G2PAAi0R+EZwhky4+LdvlRkk0="
+        "CodeSha256": "qx5KjjKS5ssljIXo/1VWGvZWq4glh6mhYJsTP28qfWU="
       }
     },
     "UpdateTodoLambdaVersionAuSJe0ziDWGPAIa7YzVISJp4aoUooo9X4Xu2rcY22c": {
@@ -605,12 +605,12 @@
             {
               "StatusCode": "200",
               "ResponseParameters": {
-                "method.response.header.Access-Control-Allow-Origin": "'*'",
-                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                "method.response.header.Access-Control-Allow-Origin": "'https://ubiquitous-fishstick-67q56x4pqr92wxg-3000.app.github.dev'",
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
                 "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST,GET'"
               },
               "ResponseTemplates": {
-                "application/json": ""
+                "application/json": "#set($origin = $input.params(\"Origin\"))\n#if($origin == \"\") #set($origin = $input.params(\"origin\")) #end\n#if($origin.matches(\"https://ubiquitous-fishstick-67q56x4pqr92wxg-3000[.]app[.]github[.]dev\") || $origin.matches(\"http://localhost:3000\")) #set($context.responseOverride.header.Access-Control-Allow-Origin = $origin) #end"
               }
             }
           ]
@@ -650,12 +650,12 @@
             {
               "StatusCode": "200",
               "ResponseParameters": {
-                "method.response.header.Access-Control-Allow-Origin": "'*'",
-                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                "method.response.header.Access-Control-Allow-Origin": "'https://ubiquitous-fishstick-67q56x4pqr92wxg-3000.app.github.dev'",
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
                 "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,DELETE,PATCH'"
               },
               "ResponseTemplates": {
-                "application/json": ""
+                "application/json": "#set($origin = $input.params(\"Origin\"))\n#if($origin == \"\") #set($origin = $input.params(\"origin\")) #end\n#if($origin.matches(\"https://ubiquitous-fishstick-67q56x4pqr92wxg-3000[.]app[.]github[.]dev\") || $origin.matches(\"http://localhost:3000\")) #set($context.responseOverride.header.Access-Control-Allow-Origin = $origin) #end"
               }
             }
           ]
@@ -695,12 +695,12 @@
             {
               "StatusCode": "200",
               "ResponseParameters": {
-                "method.response.header.Access-Control-Allow-Origin": "'*'",
-                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                "method.response.header.Access-Control-Allow-Origin": "'https://ubiquitous-fishstick-67q56x4pqr92wxg-3000.app.github.dev'",
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
                 "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST'"
               },
               "ResponseTemplates": {
-                "application/json": ""
+                "application/json": "#set($origin = $input.params(\"Origin\"))\n#if($origin == \"\") #set($origin = $input.params(\"origin\")) #end\n#if($origin.matches(\"https://ubiquitous-fishstick-67q56x4pqr92wxg-3000[.]app[.]github[.]dev\") || $origin.matches(\"http://localhost:3000\")) #set($context.responseOverride.header.Access-Control-Allow-Origin = $origin) #end"
               }
             }
           ]
@@ -1044,7 +1044,6 @@
     "AuthorizerApiGatewayAuthorizer": {
       "Type": "AWS::ApiGateway::Authorizer",
       "Properties": {
-        "AuthorizerResultTtlInSeconds": 300,
         "IdentitySource": "method.request.header.Authorization",
         "Name": "Authorizer",
         "RestApiId": {
@@ -1076,7 +1075,7 @@
         "Type": "TOKEN"
       }
     },
-    "ApiGatewayDeployment1764499347802": {
+    "ApiGatewayDeployment1764563161419": {
       "Type": "AWS::ApiGateway::Deployment",
       "Properties": {
         "RestApiId": {
@@ -1426,7 +1425,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/serverless-todo-app/dev/1764499354448-2025-11-30T10:42:34.448Z/custom-resources.zip"
+          "S3Key": "serverless/serverless-todo-app/dev/1764563166007-2025-12-01T04:26:06.007Z/custom-resources.zip"
         },
         "FunctionName": "serverless-todo-app-dev-custom-resource-apigw-cw-role",
         "Handler": "api-gateway-cloud-watch-role/handler.handler",
@@ -1954,7 +1953,7 @@
     "CreateTodoLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "CreateTodoLambdaVersionsmBy71ljM94LZlIM5JnHZCtzMS0j3OvduQNjsZUce14"
+        "Ref": "CreateTodoLambdaVersionZYojp0f0k3DuSqIPAB6jR6Qf6Db5NG1vYBYt7xV2FTc"
       },
       "Export": {
         "Name": "sls-serverless-todo-app-dev-CreateTodoLambdaFunctionQualifiedArn"
