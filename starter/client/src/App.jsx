@@ -7,8 +7,7 @@ import { Grid, Menu, Segment, Loader } from 'semantic-ui-react';
 import Todos from './components/Todos';
 import EditTodo from './components/EditTodo';
 import LogIn from './components/LogIn';
-import NotFound from './components/NotFound';
-import NewTodoInput from './components/NewTodoInput'; // ✅ Added create page
+import NewTodoInput from './components/NewTodoInput';
 
 export default function App() {
   const { isAuthenticated, isLoading, loginWithRedirect, logout } = useAuth0();
@@ -26,14 +25,8 @@ export default function App() {
 
   const generateMenu = () => (
     <Menu>
-      <Menu.Item as={Link} to="/">
-        Home
-      </Menu.Item>
-      {isAuthenticated && (
-        <Menu.Item as={Link} to="/create">
-          Create
-        </Menu.Item>
-      )}
+      <Menu.Item as={Link} to="/">Home</Menu.Item>
+      {isAuthenticated && <Menu.Item as={Link} to="/create">Create</Menu.Item>}
       <Menu.Menu position="right">{logInLogOutButton()}</Menu.Menu>
     </Menu>
   );
@@ -41,9 +34,7 @@ export default function App() {
   if (isLoading) {
     return (
       <Segment vertical style={{ padding: '8em 0em' }}>
-        <Loader active inline="centered">
-          Loading…
-        </Loader>
+        <Loader active inline="centered">Loading…</Loader>
       </Segment>
     );
   }
@@ -58,13 +49,13 @@ export default function App() {
               <Routes>
                 {!isAuthenticated ? (
                   <>
-                    <Route path="*" element={<LogIn />} />
                     <Route path="/" element={<LogIn />} />
+                    <Route path="*" element={<LogIn />} />
                   </>
                 ) : (
                   <>
                     <Route path="/" element={<Todos />} />
-                    <Route path="/create" element={<NewTodoInput />} /> {/* ✅ Added route */}
+                    <Route path="/create" element={<NewTodoInput />} />
                     <Route path="/todos/:todoId/edit" element={<EditTodo />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                   </>
