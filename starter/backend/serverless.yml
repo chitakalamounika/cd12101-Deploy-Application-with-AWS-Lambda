@@ -10,6 +10,10 @@ custom:
   webOrigins:
     - https://ubiquitous-fishstick-67q56x4pqr92wxg-3000.app.github.dev
     - http://serverless-todo-frontend-dev-719705352300.s3-website.us-east-2.amazonaws.com
+
+  # Use the same list for CORS
+  corsOrigins: ${self:custom.webOrigins}
+
   corsHeaders:
     - Content-Type
     - X-Amz-Date
@@ -33,6 +37,7 @@ provider:
   architecture: arm64
 
   environment:
+    # (Optional; your lambdas can read this if needed)
     WEB_ORIGIN: https://ubiquitous-fishstick-67q56x4pqr92wxg-3000.app.github.dev
     TODOS_TABLE: Todos-${self:provider.stage}
     TODOS_INDEX_NAME: UserIdCreatedAtIndex
@@ -79,7 +84,7 @@ functions:
           path: todos
           method: get
           cors:
-            origins: ${self:custom.webOrigins}
+            origins: ${self:custom.corsOrigins}
             headers: ${self:custom.corsHeaders}
             allowCredentials: false
           authorizer: Authorizer
@@ -91,7 +96,7 @@ functions:
           path: todos
           method: post
           cors:
-            origins: ${self:custom.webOrigins}
+            origins: ${self:custom.corsOrigins}
             headers: ${self:custom.corsHeaders}
             allowCredentials: false
           authorizer: Authorizer
@@ -103,7 +108,7 @@ functions:
           path: todos/{todoId}
           method: patch
           cors:
-            origins: ${self:custom.webOrigins}
+            origins: ${self:custom.corsOrigins}
             headers: ${self:custom.corsHeaders}
             allowCredentials: false
           authorizer: Authorizer
@@ -115,7 +120,7 @@ functions:
           path: todos/{todoId}
           method: delete
           cors:
-            origins: ${self:custom.webOrigins}
+            origins: ${self:custom.corsOrigins}
             headers: ${self:custom.corsHeaders}
             allowCredentials: false
           authorizer: Authorizer
@@ -127,7 +132,7 @@ functions:
           path: todos/{todoId}/attachment
           method: post
           cors:
-            origins: ${self:custom.webOrigins}
+            origins: ${self:custom.corsOrigins}
             headers: ${self:custom.corsHeaders}
             allowCredentials: false
           authorizer: Authorizer
@@ -183,7 +188,7 @@ resources:
               AllowedMethods: ["GET", "PUT", "POST", "DELETE", "HEAD"]
               MaxAge: 3000
 
-    # Fix API Gateway default error responses to include CORS
+    # API Gateway default error responses with CORS
     GatewayResponseDefault4XX:
       Type: AWS::ApiGateway::GatewayResponse
       Properties:
