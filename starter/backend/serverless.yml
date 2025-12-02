@@ -6,14 +6,6 @@ plugins:
   - serverless-esbuild
 
 custom:
-  # Headers browsers actually send in preflight
-  corsHeaders:
-    - Content-Type
-    - X-Amz-Date
-    - Authorization
-    - X-Api-Key
-    - X-Amz-Security-Token
-
   esbuild:
     bundle: true
     minify: true
@@ -30,7 +22,7 @@ provider:
   architecture: arm64
 
   environment:
-    # Optional: used by your lambdas if you read it
+    # Frontend you’ll primarily use (optional for Lambdas that echo CORS)
     WEB_ORIGIN: https://d75e1orv544mf.cloudfront.net
     TODOS_TABLE: Todos-${self:provider.stage}
     TODOS_INDEX_NAME: UserIdCreatedAtIndex
@@ -76,10 +68,7 @@ functions:
       - http:
           path: todos
           method: get
-          cors: &corsAll
-            origins: '*'                # wildcard CORS (no cookies)
-            headers: ${self:custom.corsHeaders}
-            allowCredentials: false
+          cors: true
           authorizer: Authorizer
 
   CreateTodo:
@@ -88,7 +77,7 @@ functions:
       - http:
           path: todos
           method: post
-          cors: *corsAll
+          cors: true
           authorizer: Authorizer
 
   UpdateTodo:
@@ -97,7 +86,7 @@ functions:
       - http:
           path: todos/{todoId}
           method: patch
-          cors: *corsAll
+          cors: true
           authorizer: Authorizer
 
   DeleteTodo:
@@ -106,7 +95,7 @@ functions:
       - http:
           path: todos/{todoId}
           method: delete
-          cors: *corsAll
+          cors: true
           authorizer: Authorizer
 
   GenerateUploadUrl:
@@ -115,12 +104,12 @@ functions:
       - http:
           path: todos/{todoId}/attachment
           method: post
-          cors: *corsAll
+          cors: true
           authorizer: Authorizer
 
 resources:
   Resources:
-    # DynamoDB table (PK: userId, SK: todoId), GSI for listing by createdAt
+    # DynamoDB table (PK: userId, SK: todoId). GSI for listing by createdAt.
     TodosTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -148,7 +137,7 @@ resources:
             Projection:
               ProjectionType: ALL
 
-    # S3 bucket for attachments; CORS wide so presigned uploads work from any origin
+    # S3 bucket for attachments with permissive CORS (for presigned PUTs from browser)
     AttachmentsBucket:
       Type: AWS::S3::Bucket
       Properties:
@@ -169,7 +158,7 @@ resources:
               AllowedMethods: ["GET", "PUT", "POST", "DELETE", "HEAD"]
               MaxAge: 3000
 
-    # Ensure API Gateway default 4XX/5XX also include CORS
+    # Ensure API Gateway default 4XX/5XX also include CORS headers
     GatewayResponseDefault4XX:
       Type: AWS::ApiGateway::GatewayResponse
       Properties:
