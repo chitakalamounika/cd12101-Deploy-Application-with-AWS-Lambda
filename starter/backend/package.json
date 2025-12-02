@@ -1,7 +1,6 @@
 {
   "name": "serverless-todo-app",
   "version": "1.0.0",
-  "type": "module",
   "description": "Serverless TODO image app",
   "main": "handler.js",
   "scripts": {
