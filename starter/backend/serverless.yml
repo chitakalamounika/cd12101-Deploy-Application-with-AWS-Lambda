@@ -88,19 +88,6 @@ resources:
                 - ETag
               MaxAge: 3000
 
-    AttachmentsBucketPolicy:
-      Type: AWS::S3::BucketPolicy
-      Properties:
-        Bucket: ${self:provider.environment.ATTACHMENTS_S3_BUCKET}
-        PolicyDocument:
-          Version: "2012-10-17"
-          Statement:
-            - Sid: AllowCloudFrontAccess
-              Effect: Allow
-              Principal: "*"
-              Action: "s3:GetObject"
-              Resource: arn:aws:s3:::${self:provider.environment.ATTACHMENTS_S3_BUCKET}/*
-
 # ✅ Outputs section
 outputs:
   ApiGatewayInvokeURL:
