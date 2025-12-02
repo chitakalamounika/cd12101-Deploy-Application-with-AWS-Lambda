@@ -16,6 +16,7 @@ provider:
     AUTH0_AUDIENCE: ${env:AUTH0_AUDIENCE, 'https://todo-api'}
     AUTH0_JWKS_URL: https://${env:AUTH0_DOMAIN}/.well-known/jwks.json
     AUTH0_ISSUER: https://${env:AUTH0_DOMAIN}/
+    WEB_ORIGIN: '*'
   iam:
     role:
       statements:
