@@ -6,15 +6,6 @@ plugins:
   - serverless-esbuild
 
 custom:
-  # Frontend URLs allowed to call the API
-  webOrigins:
-    - https://d75e1orv544mf.cloudfront.net
-    - https://ubiquitous-fishstick-67q56x4pqr92wxg-3000.app.github.dev
-    - http://serverless-todo-frontend-dev-719705352300.s3-website.us-east-2.amazonaws.com
-
-  # Reuse the same list for CORS on API routes
-  corsOrigins: ${self:custom.webOrigins}
-
   # Headers browsers actually send in preflight
   corsHeaders:
     - Content-Type
@@ -39,7 +30,7 @@ provider:
   architecture: arm64
 
   environment:
-    # Optional: some lambdas use this to set CORS headers
+    # Optional: used by your lambdas if you read it
     WEB_ORIGIN: https://d75e1orv544mf.cloudfront.net
     TODOS_TABLE: Todos-${self:provider.stage}
     TODOS_INDEX_NAME: UserIdCreatedAtIndex
@@ -85,8 +76,8 @@ functions:
       - http:
           path: todos
           method: get
-          cors:
-            origins: ${self:custom.corsOrigins}
+          cors: &corsAll
+            origins: '*'                # wildcard CORS (no cookies)
             headers: ${self:custom.corsHeaders}
             allowCredentials: false
           authorizer: Authorizer
@@ -97,10 +88,7 @@ functions:
       - http:
           path: todos
           method: post
-          cors:
-            origins: ${self:custom.corsOrigins}
-            headers: ${self:custom.corsHeaders}
-            allowCredentials: false
+          cors: *corsAll
           authorizer: Authorizer
 
   UpdateTodo:
@@ -109,10 +97,7 @@ functions:
       - http:
           path: todos/{todoId}
           method: patch
-          cors:
-            origins: ${self:custom.corsOrigins}
-            headers: ${self:custom.corsHeaders}
-            allowCredentials: false
+          cors: *corsAll
           authorizer: Authorizer
 
   DeleteTodo:
@@ -121,10 +106,7 @@ functions:
       - http:
           path: todos/{todoId}
           method: delete
-          cors:
-            origins: ${self:custom.corsOrigins}
-            headers: ${self:custom.corsHeaders}
-            allowCredentials: false
+          cors: *corsAll
           authorizer: Authorizer
 
   GenerateUploadUrl:
@@ -133,15 +115,12 @@ functions:
       - http:
           path: todos/{todoId}/attachment
           method: post
-          cors:
-            origins: ${self:custom.corsOrigins}
-            headers: ${self:custom.corsHeaders}
-            allowCredentials: false
+          cors: *corsAll
           authorizer: Authorizer
 
 resources:
   Resources:
-    # DynamoDB table (PK: userId, SK: todoId), GSI for userId-createdAt listing
+    # DynamoDB table (PK: userId, SK: todoId), GSI for listing by createdAt
     TodosTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -169,7 +148,7 @@ resources:
             Projection:
               ProjectionType: ALL
 
-    # S3 bucket for attachments with CORS so the app can upload via signed URL
+    # S3 bucket for attachments; CORS wide so presigned uploads work from any origin
     AttachmentsBucket:
       Type: AWS::S3::Bucket
       Properties:
@@ -185,12 +164,12 @@ resources:
                 SSEAlgorithm: AES256
         CorsConfiguration:
           CorsRules:
-            - AllowedOrigins: ${self:custom.webOrigins}
+            - AllowedOrigins: ["*"]
               AllowedHeaders: ["*"]
               AllowedMethods: ["GET", "PUT", "POST", "DELETE", "HEAD"]
               MaxAge: 3000
 
-    # Ensure API Gateway default 4XX/5XX also return CORS headers
+    # Ensure API Gateway default 4XX/5XX also include CORS
     GatewayResponseDefault4XX:
       Type: AWS::ApiGateway::GatewayResponse
       Properties:
