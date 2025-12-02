@@ -20,7 +20,7 @@ root.render(
     authorizationParams={{
       redirect_uri: window.location.origin,
       audience, 
-      scope: 'openid profile email read:todo write:todo delete:todo',
+      scope: 'openid profile email read:todo write:todo delete:todo offline_access', prompt: 'consent'
     }}
     cacheLocation="localstorage"   
     useRefreshTokens={true}        
