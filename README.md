@@ -97,23 +97,51 @@ await this.dynamoDBClient
 
 To deploy an application run the following commands:
 
-```
+```bash
 cd backend
 npm install
+
+# Set Auth0 environment variables
+export AUTH0_DOMAIN=your-auth0-domain.us.auth0.com
+export AUTH0_AUDIENCE=https://todo-api
+
+# Deploy to AWS
 sls deploy -v
 ```
 
+**Important:** Make sure to:
+- Configure your AWS credentials before deploying
+- Replace `your-auth0-domain.us.auth0.com` with your actual Auth0 domain
+- Ensure your Auth0 application is configured with the correct callback URLs
+
 ## Frontend
 
-To run a client application first edit the `client/src/config.ts` file to set correct parameters. And then run the following commands
+To run a client application, first create a `.env` file in the `client` folder with the following content:
 
+```bash
+REACT_APP_API_ENDPOINT=https://your-api-id.execute-api.us-east-2.amazonaws.com/prod
+REACT_APP_AUTH0_DOMAIN=your-auth0-domain.us.auth0.com
+REACT_APP_AUTH0_CLIENT_ID=your-auth0-client-id
+REACT_APP_AUTH0_AUDIENCE=https://todo-api
+PORT=3000
 ```
+
+Then run the following commands:
+
+```bash
 cd client
 npm install
-npm run start
+npm start
 ```
 
 This should start a development server with the React application that will interact with the serverless TODO application.
+
+**Important:** 
+- Replace `your-api-id` with the API Gateway ID from your deployment
+- Replace `your-auth0-domain` with your actual Auth0 domain
+- Replace `your-auth0-client-id` with your Auth0 application client ID
+- In Auth0, add your application URL (e.g., `http://localhost:3000` or your Codespaces URL) to the Allowed Callback URLs, Allowed Logout URLs, and Allowed Web Origins
+- If using GitHub Codespaces, ensure port 3000 is set to "Public" visibility in the PORTS tab
 
 # "curl" commands
 
