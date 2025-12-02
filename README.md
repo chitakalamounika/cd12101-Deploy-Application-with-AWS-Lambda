@@ -154,6 +154,7 @@ You would also need to provide an ID of an existing TODO in the URL.
 ```sh
 curl --location --request PATCH 'https://{API-ID}.execute-api.us-east-1.amazonaws.com/dev/todos/{TODO-ID}' \
 --header 'Authorization: Bearer {JWT-token}' \
+
 --header 'Content-Type: application/json' \
 --data-raw '{
     "name": "Buy bread",

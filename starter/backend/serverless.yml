@@ -6,15 +6,17 @@ plugins:
   - serverless-esbuild
 
 custom:
-  webOrigin: https://ubiquitous-fishstick-67q56x4pqr92wxg-3000.app.github.dev
-  corsOrigins:
-    - ${self:custom.webOrigin}
+  # Frontend URLs allowed to call the API
+  webOrigins:
+    - https://ubiquitous-fishstick-67q56x4pqr92wxg-3000.app.github.dev
+    - http://serverless-todo-frontend-dev-719705352300.s3-website.us-east-2.amazonaws.com
   corsHeaders:
     - Content-Type
     - X-Amz-Date
     - Authorization
     - X-Api-Key
     - X-Amz-Security-Token
+
   esbuild:
     bundle: true
     minify: true
@@ -28,8 +30,10 @@ provider:
   runtime: nodejs18.x
   region: us-east-2
   stage: dev
+  architecture: arm64
+
   environment:
-    WEB_ORIGIN: ${self:custom.webOrigin}
+    WEB_ORIGIN: https://ubiquitous-fishstick-67q56x4pqr92wxg-3000.app.github.dev
     TODOS_TABLE: Todos-${self:provider.stage}
     TODOS_INDEX_NAME: UserIdCreatedAtIndex
     ATTACHMENTS_BUCKET: todo-attachments-${self:provider.stage}-${aws:accountId}
@@ -37,6 +41,32 @@ provider:
     AUTH0_JWKS_URL: https://dev-mounika1810.us.auth0.com/.well-known/jwks.json
     AUTH0_AUDIENCE: https://todo-api
     AUTH0_ISSUER: https://dev-mounika1810.us.auth0.com/
+
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:DescribeTable
+            - dynamodb:Query
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+            - dynamodb:GetItem
+          Resource:
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.TODOS_TABLE}
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.TODOS_INDEX_NAME}
+        - Effect: Allow
+          Action:
+            - s3:PutObject
+            - s3:GetObject
+          Resource:
+            - arn:aws:s3:::${self:provider.environment.ATTACHMENTS_BUCKET}/*
+        - Effect: Allow
+          Action:
+            - xray:PutTraceSegments
+            - xray:PutTelemetryRecords
+          Resource: "*"
 
 functions:
   Authorizer:
@@ -49,7 +79,7 @@ functions:
           path: todos
           method: get
           cors:
-            origins: ${self:custom.corsOrigins}
+            origins: ${self:custom.webOrigins}
             headers: ${self:custom.corsHeaders}
             allowCredentials: false
           authorizer: Authorizer
@@ -61,7 +91,7 @@ functions:
           path: todos
           method: post
           cors:
-            origins: ${self:custom.corsOrigins}
+            origins: ${self:custom.webOrigins}
             headers: ${self:custom.corsHeaders}
             allowCredentials: false
           authorizer: Authorizer
@@ -73,7 +103,7 @@ functions:
           path: todos/{todoId}
           method: patch
           cors:
-            origins: ${self:custom.corsOrigins}
+            origins: ${self:custom.webOrigins}
             headers: ${self:custom.corsHeaders}
             allowCredentials: false
           authorizer: Authorizer
@@ -85,7 +115,7 @@ functions:
           path: todos/{todoId}
           method: delete
           cors:
-            origins: ${self:custom.corsOrigins}
+            origins: ${self:custom.webOrigins}
             headers: ${self:custom.corsHeaders}
             allowCredentials: false
           authorizer: Authorizer
@@ -97,20 +127,70 @@ functions:
           path: todos/{todoId}/attachment
           method: post
           cors:
-            origins: ${self:custom.corsOrigins}
+            origins: ${self:custom.webOrigins}
             headers: ${self:custom.corsHeaders}
             allowCredentials: false
           authorizer: Authorizer
 
 resources:
   Resources:
+    # DynamoDB table
+    TodosTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.TODOS_TABLE}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: userId
+            AttributeType: S
+          - AttributeName: todoId
+            AttributeType: S
+          - AttributeName: createdAt
+            AttributeType: S
+        KeySchema:
+          - AttributeName: userId
+            KeyType: HASH
+          - AttributeName: todoId
+            KeyType: RANGE
+        GlobalSecondaryIndexes:
+          - IndexName: ${self:provider.environment.TODOS_INDEX_NAME}
+            KeySchema:
+              - AttributeName: userId
+                KeyType: HASH
+              - AttributeName: createdAt
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+
+    # S3 Bucket for attachments
+    AttachmentsBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:provider.environment.ATTACHMENTS_BUCKET}
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          IgnorePublicAcls: true
+          BlockPublicPolicy: true
+          RestrictPublicBuckets: true
+        BucketEncryption:
+          ServerSideEncryptionConfiguration:
+            - ServerSideEncryptionByDefault:
+                SSEAlgorithm: AES256
+        CorsConfiguration:
+          CorsRules:
+            - AllowedOrigins: ${self:custom.webOrigins}
+              AllowedHeaders: ["*"]
+              AllowedMethods: ["GET", "PUT", "POST", "DELETE", "HEAD"]
+              MaxAge: 3000
+
+    # Fix API Gateway default error responses to include CORS
     GatewayResponseDefault4XX:
       Type: AWS::ApiGateway::GatewayResponse
       Properties:
         ResponseType: DEFAULT_4XX
         RestApiId: { Ref: ApiGatewayRestApi }
         ResponseParameters:
-          gatewayresponse.header.Access-Control-Allow-Origin: "'${self:custom.webOrigin}'"
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
           gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
           gatewayresponse.header.Access-Control-Allow-Methods: "'GET,POST,PATCH,DELETE,OPTIONS'"
 
@@ -120,6 +200,12 @@ resources:
         ResponseType: DEFAULT_5XX
         RestApiId: { Ref: ApiGatewayRestApi }
         ResponseParameters:
-          gatewayresponse.header.Access-Control-Allow-Origin: "'${self:custom.webOrigin}'"
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
           gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
           gatewayresponse.header.Access-Control-Allow-Methods: "'GET,POST,PATCH,DELETE,OPTIONS'"
+
+  Outputs:
+    TodosTableName:
+      Value: ${self:provider.environment.TODOS_TABLE}
+    AttachmentsBucketName:
+      Value: ${self:provider.environment.ATTACHMENTS_BUCKET}
