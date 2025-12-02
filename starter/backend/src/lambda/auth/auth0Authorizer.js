@@ -52,7 +52,9 @@ module.exports.handler = async (event) => {
     const token = extractBearer(event?.authorizationToken);
     const decoded = await verifyJwt(token);
     const principalId = decoded.sub || 'user';
-    return allow(principalId, event.methodArn, { sub: decoded.sub || '' });
+    // Allow access to all methods and resources in this API
+    const resource = event.methodArn.split('/').slice(0, 2).join('/') + '/*';
+    return allow(principalId, resource, { sub: decoded.sub || '' });
   } catch (e) {
     console.error('Authorizer error:', e?.message || e);
     return deny('anonymous', event.methodArn);
