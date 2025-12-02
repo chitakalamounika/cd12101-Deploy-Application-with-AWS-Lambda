@@ -51,7 +51,16 @@ functions:
       - http:
           path: todos
           method: get
-          cors: true
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: false
           authorizer:
             name: auth0Authorizer
             resultTtlInSeconds: 300
@@ -62,7 +71,16 @@ functions:
       - http:
           path: todos
           method: post
-          cors: true
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: false
           authorizer:
             name: auth0Authorizer
             resultTtlInSeconds: 300
@@ -73,7 +91,16 @@ functions:
       - http:
           path: todos/{todoId}
           method: patch
-          cors: true
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: false
           authorizer:
             name: auth0Authorizer
             resultTtlInSeconds: 300
@@ -84,7 +111,16 @@ functions:
       - http:
           path: todos/{todoId}
           method: delete
-          cors: true
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: false
           authorizer:
             name: auth0Authorizer
             resultTtlInSeconds: 300
@@ -95,7 +131,16 @@ functions:
       - http:
           path: todos/{todoId}/attachment
           method: post
-          cors: true
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: false
           authorizer:
             name: auth0Authorizer
             resultTtlInSeconds: 300
