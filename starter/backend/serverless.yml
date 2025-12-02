@@ -1,4 +1,4 @@
-service: serverless-todo-app-http
+service: serverless-todo-app-https
 frameworkVersion: "3"
 
 plugins:
@@ -15,6 +15,7 @@ custom:
       - aws-sdk
 
 provider:
+  stackName: serverless-todo-app-https-dev
   name: aws
   runtime: nodejs18.x
   region: us-east-2
