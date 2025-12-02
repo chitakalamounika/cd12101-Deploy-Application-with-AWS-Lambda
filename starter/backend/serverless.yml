@@ -12,17 +12,18 @@ provider:
     SIGNED_URL_EXPIRATION: 300
     AUTH0_DOMAIN: ${env:AUTH0_DOMAIN}
     AUTH0_AUDIENCE: ${env:AUTH0_AUDIENCE, 'https://todo-api'}
-
-iamRoleStatements:
-  - Effect: Allow
-    Action:
-      - s3:PutObject
-      - s3:GetObject
-      - s3:DeleteObject
-      - s3:ListBucket
-    Resource:
-      - arn:aws:s3:::${self:provider.environment.ATTACHMENTS_S3_BUCKET}
-      - arn:aws:s3:::${self:provider.environment.ATTACHMENTS_S3_BUCKET}/*
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - s3:PutObject
+            - s3:GetObject
+            - s3:DeleteObject
+            - s3:ListBucket
+          Resource:
+            - arn:aws:s3:::${self:provider.environment.ATTACHMENTS_S3_BUCKET}
+            - arn:aws:s3:::${self:provider.environment.ATTACHMENTS_S3_BUCKET}/*
 
 functions:
   getTodos:
