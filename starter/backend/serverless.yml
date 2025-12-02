@@ -1,187 +1,125 @@
-service: serverless-todo-app-https
+service: serverless-todo-api
 frameworkVersion: "3"
 
-plugins:
-  - serverless-iam-roles-per-function
-  - serverless-esbuild
-
-custom:
-  esbuild:
-    bundle: true
-    minify: true
-    target: node18
-    platform: node
-    exclude:
-      - aws-sdk
-
 provider:
-  stackName: serverless-todo-app-https-dev
   name: aws
   runtime: nodejs18.x
   region: us-east-2
-  stage: dev
-  architecture: arm64
-
+  stage: prod
+  profile: default
   environment:
-    # Frontend you’ll primarily use (optional for Lambdas that echo CORS)
-    WEB_ORIGIN: https://d75e1orv544mf.cloudfront.net
-    TODOS_TABLE: Todos-${self:provider.stage}
-    TODOS_INDEX_NAME: UserIdCreatedAtIndex
-    ATTACHMENTS_BUCKET: todo-attachments-${self:provider.stage}-${aws:accountId}
+    ATTACHMENTS_S3_BUCKET: ${self:service}-${sls:stage}-attachments-${aws:accountId}
     SIGNED_URL_EXPIRATION: 300
-    AUTH0_JWKS_URL: https://dev-mounika1810.us.auth0.com/.well-known/jwks.json
-    AUTH0_AUDIENCE: https://todo-api
-    AUTH0_ISSUER: https://dev-mounika1810.us.auth0.com/
+    AUTH0_DOMAIN: ${env:AUTH0_DOMAIN}
+    AUTH0_AUDIENCE: ${env:AUTH0_AUDIENCE, 'https://todo-api'}
 
-  iam:
-    role:
-      statements:
-        - Effect: Allow
-          Action:
-            - dynamodb:DescribeTable
-            - dynamodb:Query
-            - dynamodb:PutItem
-            - dynamodb:UpdateItem
-            - dynamodb:DeleteItem
-            - dynamodb:GetItem
-          Resource:
-            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.TODOS_TABLE}
-            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.TODOS_INDEX_NAME}
-        - Effect: Allow
-          Action:
-            - s3:PutObject
-            - s3:GetObject
-          Resource:
-            - arn:aws:s3:::${self:provider.environment.ATTACHMENTS_BUCKET}/*
-        - Effect: Allow
-          Action:
-            - xray:PutTraceSegments
-            - xray:PutTelemetryRecords
-          Resource: "*"
+iamRoleStatements:
+  - Effect: Allow
+    Action:
+      - s3:PutObject
+      - s3:GetObject
+      - s3:DeleteObject
+      - s3:ListBucket
+    Resource:
+      - arn:aws:s3:::${self:provider.environment.ATTACHMENTS_S3_BUCKET}
+      - arn:aws:s3:::${self:provider.environment.ATTACHMENTS_S3_BUCKET}/*
 
 functions:
-  Authorizer:
-    handler: src/lambda/auth/auth0Authorizer.handler
-
-  GetTodos:
+  getTodos:
     handler: src/lambda/http/getTodos.handler
     events:
       - http:
           path: todos
           method: get
           cors: true
-          authorizer: Authorizer
 
-  CreateTodo:
+  createTodo:
     handler: src/lambda/http/createTodo.handler
     events:
       - http:
           path: todos
           method: post
           cors: true
-          authorizer: Authorizer
 
-  UpdateTodo:
+  updateTodo:
     handler: src/lambda/http/updateTodo.handler
     events:
       - http:
           path: todos/{todoId}
           method: patch
           cors: true
-          authorizer: Authorizer
 
-  DeleteTodo:
+  deleteTodo:
     handler: src/lambda/http/deleteTodo.handler
     events:
       - http:
           path: todos/{todoId}
           method: delete
           cors: true
-          authorizer: Authorizer
 
-  GenerateUploadUrl:
+  generateUploadUrl:
     handler: src/lambda/http/generateUploadUrl.handler
     events:
       - http:
           path: todos/{todoId}/attachment
           method: post
           cors: true
-          authorizer: Authorizer
 
 resources:
   Resources:
-    # DynamoDB table (PK: userId, SK: todoId). GSI for listing by createdAt.
-    TodosTable:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        TableName: ${self:provider.environment.TODOS_TABLE}
-        BillingMode: PAY_PER_REQUEST
-        AttributeDefinitions:
-          - AttributeName: userId
-            AttributeType: S
-          - AttributeName: todoId
-            AttributeType: S
-          - AttributeName: createdAt
-            AttributeType: S
-        KeySchema:
-          - AttributeName: userId
-            KeyType: HASH
-          - AttributeName: todoId
-            KeyType: RANGE
-        GlobalSecondaryIndexes:
-          - IndexName: ${self:provider.environment.TODOS_INDEX_NAME}
-            KeySchema:
-              - AttributeName: userId
-                KeyType: HASH
-              - AttributeName: createdAt
-                KeyType: RANGE
-            Projection:
-              ProjectionType: ALL
-
-    # S3 bucket for attachments with permissive CORS (for presigned PUTs from browser)
     AttachmentsBucket:
       Type: AWS::S3::Bucket
       Properties:
-        BucketName: ${self:provider.environment.ATTACHMENTS_BUCKET}
-        PublicAccessBlockConfiguration:
-          BlockPublicAcls: true
-          IgnorePublicAcls: true
-          BlockPublicPolicy: true
-          RestrictPublicBuckets: true
-        BucketEncryption:
-          ServerSideEncryptionConfiguration:
-            - ServerSideEncryptionByDefault:
-                SSEAlgorithm: AES256
+        BucketName: ${self:provider.environment.ATTACHMENTS_S3_BUCKET}
         CorsConfiguration:
           CorsRules:
-            - AllowedOrigins: ["*"]
-              AllowedHeaders: ["*"]
-              AllowedMethods: ["GET", "PUT", "POST", "DELETE", "HEAD"]
+            - AllowedOrigins:
+                - "*"
+              AllowedMethods:
+                - GET
+                - PUT
+                - POST
+                - DELETE
+                - HEAD
+              AllowedHeaders:
+                - "*"
+              ExposedHeaders:
+                - ETag
               MaxAge: 3000
 
-    # Ensure API Gateway default 4XX/5XX also include CORS headers
-    GatewayResponseDefault4XX:
-      Type: AWS::ApiGateway::GatewayResponse
+    AttachmentsBucketPolicy:
+      Type: AWS::S3::BucketPolicy
       Properties:
-        ResponseType: DEFAULT_4XX
-        RestApiId: { Ref: ApiGatewayRestApi }
-        ResponseParameters:
-          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
-          gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
-          gatewayresponse.header.Access-Control-Allow-Methods: "'GET,POST,PATCH,DELETE,OPTIONS'"
+        Bucket: ${self:provider.environment.ATTACHMENTS_S3_BUCKET}
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Sid: AllowCloudFrontAccess
+              Effect: Allow
+              Principal: "*"
+              Action: "s3:GetObject"
+              Resource: arn:aws:s3:::${self:provider.environment.ATTACHMENTS_S3_BUCKET}/*
 
-    GatewayResponseDefault5XX:
-      Type: AWS::ApiGateway::GatewayResponse
-      Properties:
-        ResponseType: DEFAULT_5XX
-        RestApiId: { Ref: ApiGatewayRestApi }
-        ResponseParameters:
-          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
-          gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
-          gatewayresponse.header.Access-Control-Allow-Methods: "'GET,POST,PATCH,DELETE,OPTIONS'"
+# ✅ Outputs section
+outputs:
+  ApiGatewayInvokeURL:
+    Description: "Base URL of the deployed API Gateway"
+    Value: 
+      Fn::Join:
+        - ""
+        - - "https://"
+          - Ref: ApiGatewayRestApi
+          - ".execute-api.${self:provider.region}.amazonaws.com/"
+          - ${sls:stage}
+    Export:
+      Name: ${self:service}-${sls:stage}-ApiGatewayInvokeURL
 
-  Outputs:
-    TodosTableName:
-      Value: ${self:provider.environment.TODOS_TABLE}
-    AttachmentsBucketName:
-      Value: ${self:provider.environment.ATTACHMENTS_BUCKET}
+  AttachmentsBucketName:
+    Description: "Name of the S3 bucket for attachments"
+    Value: ${self:provider.environment.ATTACHMENTS_S3_BUCKET}
+    Export:
+      Name: ${self:service}-${sls:stage}-AttachmentsBucket
+
+  Region:
+    Description: "AWS region for this deployment"
+    Value: ${self:provider.region}
