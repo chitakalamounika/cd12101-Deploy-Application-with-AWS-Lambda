@@ -8,12 +8,14 @@ plugins:
 custom:
   # Frontend URLs allowed to call the API
   webOrigins:
+    - https://d75e1orv544mf.cloudfront.net
     - https://ubiquitous-fishstick-67q56x4pqr92wxg-3000.app.github.dev
     - http://serverless-todo-frontend-dev-719705352300.s3-website.us-east-2.amazonaws.com
 
-  # Use the same list for CORS
+  # Reuse the same list for CORS on API routes
   corsOrigins: ${self:custom.webOrigins}
 
+  # Headers browsers actually send in preflight
   corsHeaders:
     - Content-Type
     - X-Amz-Date
@@ -37,8 +39,8 @@ provider:
   architecture: arm64
 
   environment:
-    # (Optional; your lambdas can read this if needed)
-    WEB_ORIGIN: https://ubiquitous-fishstick-67q56x4pqr92wxg-3000.app.github.dev
+    # Optional: some lambdas use this to set CORS headers
+    WEB_ORIGIN: https://d75e1orv544mf.cloudfront.net
     TODOS_TABLE: Todos-${self:provider.stage}
     TODOS_INDEX_NAME: UserIdCreatedAtIndex
     ATTACHMENTS_BUCKET: todo-attachments-${self:provider.stage}-${aws:accountId}
@@ -139,7 +141,7 @@ functions:
 
 resources:
   Resources:
-    # DynamoDB table
+    # DynamoDB table (PK: userId, SK: todoId), GSI for userId-createdAt listing
     TodosTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -167,7 +169,7 @@ resources:
             Projection:
               ProjectionType: ALL
 
-    # S3 Bucket for attachments
+    # S3 bucket for attachments with CORS so the app can upload via signed URL
     AttachmentsBucket:
       Type: AWS::S3::Bucket
       Properties:
@@ -188,7 +190,7 @@ resources:
               AllowedMethods: ["GET", "PUT", "POST", "DELETE", "HEAD"]
               MaxAge: 3000
 
-    # API Gateway default error responses with CORS
+    # Ensure API Gateway default 4XX/5XX also return CORS headers
     GatewayResponseDefault4XX:
       Type: AWS::ApiGateway::GatewayResponse
       Properties:
