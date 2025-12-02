@@ -1,4 +1,4 @@
-service: serverless-todo-app-reset
+service: serverless-todo-app-http
 frameworkVersion: "3"
 
 plugins:
