@@ -143,6 +143,130 @@ This should start a development server with the React application that will inte
 - In Auth0, add your application URL (e.g., `http://localhost:3000` or your Codespaces URL) to the Allowed Callback URLs, Allowed Logout URLs, and Allowed Web Origins
 - If using GitHub Codespaces, ensure port 3000 is set to "Public" visibility in the PORTS tab
 
+# Testing the Application
+
+## Testing the Frontend
+
+To verify your frontend is working:
+
+1. Open your application URL in a browser (e.g., `http://localhost:3000` or your Codespaces URL)
+2. Click the "Log in" button to authenticate with Auth0
+3. After successful login, you should be redirected back to the application
+4. Try creating a new TODO item by entering a name and due date
+5. The TODO should appear in the list below
+6. Test updating a TODO by checking the "done" checkbox
+7. Test deleting a TODO by clicking the delete button
+
+**Expected behavior:**
+- You can log in successfully
+- TODOs are created, displayed, updated, and deleted
+- Each user only sees their own TODOs
+
+## Testing the API with curl
+
+To test the API directly, you'll need a valid JWT token. To get one:
+
+1. Log into your frontend application
+2. Open browser DevTools (F12)
+3. Go to the Console tab and run:
+   ```javascript
+   localStorage.getItem('access_token')
+   ```
+4. Copy the token (without quotes)
+
+**Note:** If using a different Auth0 library, check the Network tab in DevTools and look for the `Authorization` header in API requests.
+
+Once you have the token, test the API endpoints:
+
+### Get All TODOs
+```bash
+curl -X GET "https://your-api-id.execute-api.us-east-2.amazonaws.com/prod/todos" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json"
+```
+
+**Expected response:** JSON array of TODO items
+```json
+[
+  {
+    "todoId": "123-456-789",
+    "userId": "google-oauth2|...",
+    "name": "Test TODO",
+    "dueDate": "2025-12-31",
+    "done": false,
+    "createdAt": "2025-12-02T10:30:00.000Z"
+  }
+]
+```
+
+### Create a TODO
+```bash
+curl -X POST "https://your-api-id.execute-api.us-east-2.amazonaws.com/prod/todos" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Buy groceries", "dueDate": "2025-12-31"}'
+```
+
+**Expected response:** The newly created TODO item
+
+### Update a TODO
+```bash
+curl -X PATCH "https://your-api-id.execute-api.us-east-2.amazonaws.com/prod/todos/TODO_ID" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Buy groceries", "dueDate": "2025-12-31", "done": true}'
+```
+
+**Expected response:** 200 OK
+
+### Delete a TODO
+```bash
+curl -X DELETE "https://your-api-id.execute-api.us-east-2.amazonaws.com/prod/todos/TODO_ID" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+**Expected response:** 200 OK
+
+### Generate Upload URL
+```bash
+curl -X POST "https://your-api-id.execute-api.us-east-2.amazonaws.com/prod/todos/TODO_ID/attachment" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+**Expected response:**
+```json
+{
+  "uploadUrl": "https://your-bucket.s3.amazonaws.com/...presigned-url..."
+}
+```
+
+Then upload an image:
+```bash
+curl -X PUT -T image.jpg "PRESIGNED_URL_FROM_ABOVE"
+```
+
+## Verifying AWS Resources
+
+Check that your AWS resources were created successfully:
+
+```bash
+# List DynamoDB tables
+aws dynamodb list-tables --region us-east-2
+
+# List S3 buckets
+aws s3 ls | grep serverless-todo
+
+# List Lambda functions
+aws lambda list-functions --region us-east-2 | grep serverless-todo
+```
+
+## Common Issues
+
+- **401 Unauthorized:** Token expired or invalid - get a new token by logging in again
+- **403 Forbidden:** Check Auth0 configuration and authorizer policy
+- **CORS errors:** Verify CORS headers in `serverless.yml` and Gateway Responses
+- **Frontend not loading:** Check that port is public in Codespaces and `.env` is configured correctly
+
 # "curl" commands
 
 An alternative way to test your API you can use the following curl commands. For all examples below you would need to replace:
