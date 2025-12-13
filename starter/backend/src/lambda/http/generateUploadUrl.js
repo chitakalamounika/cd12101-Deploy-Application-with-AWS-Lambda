@@ -4,7 +4,7 @@ const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 
 const TABLE = process.env.TODOS_TABLE;
-const BUCKET = process.env.ATTACHMENTS_BUCKET;
+const BUCKET = process.env.ATTACHMENTS_S3_BUCKET;
 const EXP = parseInt(process.env.SIGNED_URL_EXPIRATION || '300', 10);
 
 const cors = () => ({ 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Credentials': true });
