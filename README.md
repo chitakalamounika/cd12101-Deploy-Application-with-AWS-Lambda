@@ -1,5 +1,13 @@
 # Serverless TODO
 
+**For Reviewers:** This application is fully implemented and deployed. To run locally, you'll need to:
+1. Set up your own AWS account and configure AWS credentials
+2. Create your own Auth0 application and configure the credentials
+3. Deploy the backend using the instructions below
+4. Configure the frontend `.env` file with your API endpoint and Auth0 credentials
+
+**Live Demo:** https://d31lh6t972jnhl.cloudfront.net (uses my Auth0 account - for reference only)
+
 To implement this project you need to implement a simple TODO application using AWS Lambda and Serverless framework. Search for all the `TODO:` comments in the code to find the placeholders that you need to implement.
 
 # Functionality of the application
@@ -90,6 +98,20 @@ await this.dynamoDBClient
   })
   .promise()
 ```
+
+# Prerequisites for Running Locally
+
+Before running this application, you must have:
+
+1. **AWS Account** with configured credentials (`aws configure`)
+2. **Auth0 Account**:
+   - Create a new application at https://auth0.com
+   - Configure **Allowed Callback URLs**: `http://localhost:3000/callback`
+   - Configure **Allowed Logout URLs**: `http://localhost:3000`
+   - Configure **Allowed Web Origins**: `http://localhost:3000`
+   - Note your **Domain**, **Client ID**, and set **Audience** to `https://todo-api`
+3. **Node.js** 18.x or higher
+4. **Serverless Framework**: `npm install -g serverless`
 
 # How to run the application
 
